@@ -2,6 +2,7 @@ package cdccm.dbServices;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -10,13 +11,13 @@ public class MySQLDBConnector {
 	public Connection conn;
 	private Statement resultStatement;
 	private static MySQLDBConnector dbConnectorObj;
-	
+	private PreparedStatement preparedstatement;
 	private MySQLDBConnector() {
 		String url = "jdbc:mysql://localhost:3306/";
 		String dbName = "child_care";
 		String driver = "com.mysql.jdbc.Driver";
 		String userName = "root";//default user name
-		String password = "admin";//default password
+		String password = "atcs";//default password
 		
 		try {
 			Class.forName(driver).newInstance();
@@ -52,7 +53,9 @@ public class MySQLDBConnector {
 	public ResultSet getReport(String sql, int childid) throws SQLException {
 		preparedstatement=conn.prepareStatement(sql);
 		preparedstatement.setInt(1,childid);
+		System.out.println("insede query");
 		ResultSet res=preparedstatement.executeQuery();
+		
 		return res;
-
+	}
 }

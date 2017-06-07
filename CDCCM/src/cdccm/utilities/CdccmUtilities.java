@@ -1,8 +1,12 @@
 package cdccm.utilities;
 
+
+import org.joda.time.LocalDate;
+import org.joda.time.Years;
+
 public class CdccmUtilities {
 	
-	public static int getAge(String dateOfBirth) throws ParseException {
+	public static int getAge(String dateOfBirth) {
 		//Returns the age by providing DOB.
 		String[] dayMonthYear = dateOfBirth.split("/");
 		
