@@ -1,13 +1,10 @@
 package cdccm.servicesimpl;
 
 import java.io.File;
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -16,7 +13,6 @@ import ar.com.fdvs.dj.domain.builders.ColumnBuilderException;
 import cdccm.dbServices.MySQLDBConnector;
 import cdccm.pojo.CareProviderPOJO;
 import cdccm.pojo.ChildIdAgeGroupId;
-import cdccm.pojo.ChildNamePlate;
 import cdccm.pojo.ChildPOJO;
 import cdccm.pojo.ChildReportPOJO;
 import cdccm.pojo.ContactPOJO;
@@ -162,7 +158,7 @@ public class AdminServiceImpl implements AdminService {
 
 		try {
 			ResultSet resultset = dbConnector.query(sql);
-			
+
 			while (resultset.next()) {
 				listofscore.add(new ChildReportPOJO(resultset.getInt(1), resultset.getString(2), resultset.getString(3),
 						resultset.getString(4), resultset.getString(5), resultset.getString(6), resultset.getString(7),
@@ -172,11 +168,11 @@ public class AdminServiceImpl implements AdminService {
 			}
 			Iterator<ChildReportPOJO> it = listofscore.iterator();
 			ChildReportPOJO temp = (ChildReportPOJO) it.next();
-			
+
 			int tempp = temp.getChildid();
 			int sizeof_total_result = listofscore.size();
 			int counter = 0;
-			
+
 			for (ChildReportPOJO p : listofscore) {
 				counter += 1;
 				if (p.getChildid() == tempp) {
@@ -187,14 +183,17 @@ public class AdminServiceImpl implements AdminService {
 						// to printing process,without this checking loop will
 						// never reach to last batch
 						printPerformanceReport(subsetoflistofscore, 0);
+						subsetoflistofscore.clear();
+						subsetoflistofscore.add(p);
 					}
 				} else {
 					tempp = p.getChildid();
 					System.out.println(p.getChildid());
 					// take the batch and send for printing
 					printPerformanceReport(subsetoflistofscore, 0);
-					// crear then list for next batch and put the first element
+					// clear the list for next batch and put the first element
 					// from new batch which has already taken out for comparison
+					// in "tempp"
 					subsetoflistofscore.clear();
 					subsetoflistofscore.add(p);
 				}
@@ -245,6 +244,7 @@ public class AdminServiceImpl implements AdminService {
 		Set<ChildIdAgeGroupId> chid_ageid = getAvailableChilden();
 		Collection<SchedulePOJO> schedule = null;
 		ResultSet resultset = null;
+		/* call to prcedure where it will compose the schedule for child */
 		String sql = "{call child_care.update_plan_for_astudent(?, ?)}";
 		Iterator<ChildIdAgeGroupId> it = chid_ageid.iterator();
 		while (it.hasNext()) {
@@ -254,7 +254,6 @@ public class AdminServiceImpl implements AdminService {
 			schedule = new ArrayList<>();
 			try {
 				while (resultset.next()) {
-					System.out.println(resultset.getString(1) + " " + resultset.getString(2));
 					schedule.add(new SchedulePOJO(resultset.getString(1), resultset.getString(2)));
 				}
 			} catch (SQLException e) {

@@ -29,13 +29,13 @@ public class FileNameGenerator {
 				break;
 			}
 		}
-
 	}
 
 	public File generateUniqueFileName(String typeofreport) {
 		String filetypecategory = "";
 		String directoryname = "";
-        //when child id is zero means it is score object and ChildReportPOJO contains the id field so we can take it from there
+		// when child id is zero means it is score object and ChildReportPOJO
+		// contains the id field so we can take it from there
 		if (this.childid == 0) {
 			this.childid = listofscoreobject.iterator().next().getChildid();
 		}
@@ -49,10 +49,11 @@ public class FileNameGenerator {
 			directoryname = "scheduledocs";
 		}
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		//format file object
-		File f = new File("C:/mypdf/" + directoryname + "/" + this.childid + "_" + dateFormat.format(new Date()) + "_"+ filetypecategory + ".pdf");
+		// format file object
+		File f = new File("C:/mypdf/" + directoryname + "/" + this.childid + "_" + dateFormat.format(new Date()) + "_"
+				+ filetypecategory + ".pdf");
 		try {
-			//create file object
+			// create file object
 			f.getParentFile().mkdirs();
 			f.createNewFile();
 		} catch (IOException e) {
