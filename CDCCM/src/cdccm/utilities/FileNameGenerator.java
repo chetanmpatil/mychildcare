@@ -29,7 +29,7 @@ public class FileNameGenerator {
 				break;
 			}
 		}
-		// this.listofscoreobject = listofscoreobject;
+
 	}
 
 	public File generateUniqueFileName(String typeofreport) {

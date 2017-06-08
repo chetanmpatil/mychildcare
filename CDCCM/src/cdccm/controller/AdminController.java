@@ -259,7 +259,7 @@ public class AdminController {
 				choiceFlag=false;
 				break;
 			case 2:
-				adminService.generateBulckReport();
+				adminService.generateBulckPerformanceReport();
 				choiceFlag=false;
 				break;
 			case 3:

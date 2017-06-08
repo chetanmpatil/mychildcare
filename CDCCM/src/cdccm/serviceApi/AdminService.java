@@ -23,10 +23,10 @@ public interface AdminService {
 	void selectNewsEvents();
 	void generateReport(int childid);
 	void GenerateScheduleReport();
-	ChildNamePlate getAchildInfo(int childid);
+	
 	ResultSet listAllChild() throws SQLException;
 	ResultSet displayInfo(int id,String tableName) throws SQLException;
-	void generateBulckReport();
+	void generateBulckPerformanceReport();
 	
 
 }
