@@ -1,5 +1,6 @@
 package cdccm.dbServices;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -51,11 +52,56 @@ public class MySQLDBConnector {
 		return resultCount;
 	}
 	public ResultSet getReport(String sql, int childid) throws SQLException {
+		ResultSet resultset=null;
+	
 		preparedstatement=conn.prepareStatement(sql);
 		preparedstatement.setInt(1,childid);
-		System.out.println("insede query");
-		ResultSet res=preparedstatement.executeQuery();
+	
+	
+		return preparedstatement.executeQuery();
+	}
+//	public ResultSet getArecord(String sql, int childid) throws SQLException {
+//		ResultSet resultset=null;
+//		System.out.println(sql+ " , "+ childid);
+//	    preparedstatement=conn.prepareStatement(sql);
+//		preparedstatement.setInt(1,childid);
+//		System.out.println("**********"+preparedstatement.getWarnings());
+//		resultset = preparedstatement.executeQuery();
+//	
+//		return resultset;
+//	}
+	public ResultSet callProcedure(String sql,int childid,int groupid) 
+	{   ResultSet resultset = null;
+	   int flag = 0;
+	  
+		CallableStatement callablestatement;
+		try {
+			callablestatement = conn.prepareCall(sql);
+			callablestatement.setInt(1,childid);
+			callablestatement.setInt(2, groupid);
+			
+			flag=callablestatement.executeUpdate();
+			callablestatement.close();
+		} catch (SQLException e) {
 		
-		return res;
+			e.printStackTrace();
+		}
+		
+		if(flag>0)
+		{
+			System.out.println("Procedure Executed Successfully");
+			try {
+				preparedstatement=conn.prepareStatement("select * from timetable");
+				resultset=preparedstatement.executeQuery();
+			} catch (SQLException e) {
+			
+				e.printStackTrace();
+			}
+ 	 	   
+		}else{
+			System.out.println("Procedure NOT Executed Successfully");
+		}
+	
+		return resultset;
 	}
 }

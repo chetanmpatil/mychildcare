@@ -8,14 +8,20 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 import ar.com.fdvs.dj.domain.builders.ColumnBuilderException;
 import cdccm.dbServices.MySQLDBConnector;
 import cdccm.pojo.CareProviderPOJO;
+import cdccm.pojo.ChildIdAgeGroupId;
+import cdccm.pojo.ChildNamePlate;
 import cdccm.pojo.ChildPOJO;
 import cdccm.pojo.ChildReportPOJO;
 import cdccm.pojo.ContactPOJO;
 import cdccm.pojo.ParentPOJO;
+import cdccm.pojo.SchedulePOJO;
 import cdccm.serviceApi.AdminService;
 import cdccm.utilities.CdccmUtilities;
 import cdccm.utilities.FileNameGenerator;
@@ -122,8 +128,9 @@ public class AdminServiceImpl implements AdminService {
 				+ "(ifnull(r.MON,0)+ifnull(r.TUE,0)+ifnull(r.WEN,0)+ifnull(r.THU,0)+ifnull(r.FRI,0)) as total,"
 				+ "cast(((ifnull(r.MON,0)+ifnull(r.TUE,0)+ifnull(r.WEN,0)+ifnull(r.THU,0)+ifnull(r.FRI,0))*100/500) as decimal(5,2)) as Percentage1"
 				+ " from report r join child_info ci join day_session ds join age_group ag join activity a on(r.fk_idchild=ci.idchild and r.fk_idsession=ds.idsession and ci.fk_age_group=ag.idage_group and r.fk_idactivity=a.idactivity) "
-				+ "where r.fk_idchild=? " + "group by ci.idchild,ds.session_name;";
-		
+				+ "where r.fk_idchild=? " 
+				+ "group by ci.idchild,ds.session_name;";
+
 		try {
 			ResultSet resultset = dbConnector.getReport(sql, childid);
 			while (resultset.next()) {
@@ -138,21 +145,22 @@ public class AdminServiceImpl implements AdminService {
 			e.printStackTrace();
 		}
 		ReportFiller reportfiller = new ReportFiller(listofscore);
-		
+
 		try {
-			JasperPrint jp = reportfiller.getReport();
+			JasperPrint jp = reportfiller.getReport("performancereport".toString(), 0);// the argument zero has no meaning just to satisfy the signature
+		
+																						
 			JasperViewer jasperViewer = new JasperViewer(jp);
 			jasperViewer.setVisible(true);
 			JRPdfExporter exporter = new JRPdfExporter();
 			exporter.setExporterInput(new SimpleExporterInput(jp));
-			
-			// create seperate util method for creating file with date name
-			FileNameGenerator filenamegererator =new FileNameGenerator(listofscore);
-			File file=filenamegererator.generateUniqueFileName();
-
+			//the second field (0) here has no meaning just to satisfy signatuere
+			FileNameGenerator filenamegererator = new FileNameGenerator(listofscore,0);
+			File file = filenamegererator.generateUniqueFileName("performancereport".toString());// util method for creating file with date name
+																	
             exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(file));
 			SimplePdfExporterConfiguration configuration = new SimplePdfExporterConfiguration();
-			configuration.setMetadataAuthor("chetan"); // why not set some
+			configuration.setMetadataAuthor("chetan"); // set some
 														// config as we like
 			exporter.setConfiguration(configuration);
 			exporter.exportReport();
@@ -196,6 +204,128 @@ public class AdminServiceImpl implements AdminService {
 	public ResultSet displayInfo(int id, String tableName) throws SQLException {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public void GenerateScheduleReport() {
+		Set<ChildIdAgeGroupId> chid_ageid = getAvailableChilden();
+		Collection<SchedulePOJO> schedule = null;
+		ResultSet resultset = null;
+		String sql = "{call child_care.update_plan_for_astudent(?, ?)}";
+		Iterator<ChildIdAgeGroupId> it = chid_ageid.iterator();
+		while (it.hasNext()) {
+			ChildIdAgeGroupId cag = it.next();
+
+			resultset = dbConnector.callProcedure(sql, cag.getChildid(), cag.getAgegroupid());
+			schedule = new ArrayList<>();
+			try {
+				while (resultset.next()) {
+					System.out.println(resultset.getString(1) + " " + resultset.getString(2));
+					schedule.add(new SchedulePOJO(resultset.getString(1), resultset.getString(2)));
+				}
+			} catch (SQLException e) {
+
+				e.printStackTrace();
+			}
+			printReport(schedule, cag.getChildid());
+
+		}
+
+	}
+
+	private void printReport(Collection<SchedulePOJO> schedule, int childid) {
+		System.out.println("Inside Printreport");
+		ReportFiller reportfiller = new ReportFiller(schedule);
+		try {
+			JasperPrint jp = reportfiller.getReport("schedulereport".toString(), childid);
+			JasperViewer jasperViewer = new JasperViewer(jp);
+			jasperViewer.setVisible(true);
+			
+   	    	JRPdfExporter exporter = new JRPdfExporter();
+			exporter.setExporterInput(new SimpleExporterInput(jp));
+
+			FileNameGenerator filenamegererator = new FileNameGenerator(schedule,childid);
+			File file = filenamegererator.generateUniqueFileName("schedulereport".toString());// util method for creating file with date name
+																	
+            exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(file));
+			SimplePdfExporterConfiguration configuration = new SimplePdfExporterConfiguration();
+			configuration.setMetadataAuthor("chetan"); // set some
+														// config as we like
+			exporter.setConfiguration(configuration);
+			exporter.exportReport();
+		} catch (JRException | ColumnBuilderException | ClassNotFoundException ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	private Set<ChildIdAgeGroupId> getAvailableChilden() {
+		// This supportive method returns the availlable childId and GroupId
+		// from report(where schedule is already made) table
+		Set<ChildIdAgeGroupId> chid_ageid = new HashSet<>();
+
+		final String sql = "select distinct fk_idchild,fk_idagegroup from report group by fk_idchild;";
+
+		try {
+			ResultSet resultset = dbConnector.query(sql);
+			// ChildIdAgeGroupId chid_ageid
+			while (resultset.next()) {
+				chid_ageid.add(new ChildIdAgeGroupId(resultset.getInt(1), resultset.getInt(2)));
+			
+			}
+
+		} catch (SQLException e) {
+
+			e.printStackTrace();
+		}
+
+		return chid_ageid;
+	}
+
+	@Override
+	public ChildNamePlate getAchildInfo(int childid) {
+		return null;
+		
+//		ChildNamePlate childnameplate = null;
+//		System.out.println("in sql ");
+//		final String sql = "select ci.name,ci.surname,ci.dob,ag.name " 
+//                + "from child_info ci join age_group ag "
+//		          + "on(ci.fk_age_group=ag.idage_group) " 
+//		          + "where ci.idchild=?;";
+//		try {
+//			ResultSet resultset = dbConnector.getArecord(sql, 4);
+//			if(resultset.next()){
+//			childnameplate = new ChildNamePlate(resultset.getString(1), resultset.getString(2), resultset.getString(3),
+//					resultset.getString(4));}
+//			System.out.println("in sql " + childnameplate.getChild_first_name());
+//
+//		} catch (SQLException e) {
+//
+//			e.printStackTrace();
+//		}
+//		return childnameplate;
+	}
+
+	@Override
+	public void generateBulckReport() {
+//		ChildNamePlate childnameplate = null;
+//		System.out.println("in sql ");
+//		final String sql = "select ci.name,ci.surname,ci.dob,ag.name " 
+//		                  + "from child_info ci join age_group ag "
+//				          + "on(ci.fk_age_group=ag.idage_group) " 
+//				          + "where ci.idchild=?;";
+//
+//		try {
+//			ResultSet resultset = dbConnector.getArecord(sql, 4);
+//			if(resultset.next()){
+//			childnameplate = new ChildNamePlate(resultset.getString(1), resultset.getString(2), resultset.getString(3),
+//					resultset.getString(4));
+//			System.out.println("in sql " + childnameplate.getChild_first_name());
+//			}
+//		} catch (SQLException e) {
+//
+//			e.printStackTrace();
+//		}
+//		
 	}
 
 }

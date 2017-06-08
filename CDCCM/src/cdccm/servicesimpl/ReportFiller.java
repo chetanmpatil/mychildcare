@@ -1,6 +1,8 @@
 package cdccm.servicesimpl;
 
 import java.awt.Color;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,42 +23,130 @@ import ar.com.fdvs.dj.domain.constants.HorizontalAlign;
 import ar.com.fdvs.dj.domain.constants.Transparency;
 import ar.com.fdvs.dj.domain.constants.VerticalAlign;
 import ar.com.fdvs.dj.domain.entities.columns.AbstractColumn;
+import cdccm.dbServices.MySQLDBConnector;
+import cdccm.pojo.ChildNamePlate;
 import cdccm.pojo.ChildReportPOJO;
+import cdccm.pojo.SchedulePOJO;
+import cdccm.serviceApi.AdminService;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 
 public class ReportFiller {
-	private final Collection<ChildReportPOJO> list = new ArrayList<>();
-
-	public ReportFiller(Collection<ChildReportPOJO> c) {
-		list.addAll(c);
-		Iterator<ChildReportPOJO> it = list.iterator();
-		while (it.hasNext()) {
-			ChildReportPOJO childreportpojo = it.next();
-			System.out.println(childreportpojo.getName() + " " + childreportpojo.getPercentage() + ""
-					+ childreportpojo.getTotal());
+    private final Collection<ChildReportPOJO> reportlist = new ArrayList<>();
+	private final Collection<SchedulePOJO> schedulelist = new ArrayList<>();
+	private MySQLDBConnector dbConnector;
+	public ReportFiller(Collection<? extends Object> option)
+	{       dbConnector = MySQLDBConnector.getInstance();
+		    for (Object obj : option) {
+			   if (obj.getClass().getName().equals("cdccm.pojo.ChildReportPOJO")) {
+				   System.out.println("Inside cdccm.pojo.ChildReportPOJO");
+				   reportlist.addAll((Collection<? extends ChildReportPOJO>)option);
+			      break;
+			   }
+			   else if(obj.getClass().getName().equals("cdccm.pojo.SchedulePOJO")){
+				 
+				   schedulelist.addAll((Collection<? extends SchedulePOJO>)option);
+				   break;
+			   }
 		}
 	}
-
-	public JasperPrint getReport() throws ColumnBuilderException, JRException, ClassNotFoundException {
-		Style headerStyle = createHeaderStyle();
+   public JasperPrint getReport(String typeofreport,int childid) throws ColumnBuilderException, JRException, ClassNotFoundException {
+		JasperPrint jp = null ;
+		Style headerStyle = createHeaderStyle();// style setup
 		Style detailTextStyle = createDetailTextStyle();
 		Style detailNumberStyle = createDetailNumberStyle();
-		DynamicReport dynaReport = getReport(headerStyle, detailTextStyle, detailNumberStyle);
-		JasperPrint jp = DynamicJasperHelper.generateJasperPrint(dynaReport, new ClassicLayoutManager(),
-				new JRBeanCollectionDataSource(list));
+		
+		if(typeofreport.equals("performancereport"))//Check whether the reporting request is for schedule or performance
+		{
+		DynamicReport dynaReport = getPerformanceReport(headerStyle, detailTextStyle, detailNumberStyle);//make call to performance reporting
+		 jp = DynamicJasperHelper.generateJasperPrint(dynaReport, new ClassicLayoutManager(),
+				new JRBeanCollectionDataSource(reportlist));
+		}
+		else if(typeofreport.equals("schedulereport"))
+		{
+			  System.out.println("cdccm.pojo.SchedulePOJO");
+			DynamicReport dynaReport = getScheduleReport(headerStyle, detailTextStyle, detailNumberStyle,childid);//make call to schedule reporting
+			 jp = DynamicJasperHelper.generateJasperPrint(dynaReport, new ClassicLayoutManager(),
+					new JRBeanCollectionDataSource(schedulelist));//fillas the content in empty skeleton
+		}
 		return jp;
 	}
 
+	private DynamicReport getScheduleReport(Style headerStyle, Style detailTextStyle, Style detailNumberStyle,int childid) 	throws ColumnBuilderException, ClassNotFoundException {
+ 		ChildNamePlate childnameplate=null; 
+		DynamicReportBuilder report = new DynamicReportBuilder();
+		
+        childnameplate=getchildNameplate(childid);// takes child nameplate
+     
+		AbstractColumn plantime = createColumn("plantime", String.class, "Time", 50, headerStyle,
+				detailTextStyle);// creates column 
+		AbstractColumn plan = createColumn("plan", String.class, "Activity", 50, headerStyle,
+				detailTextStyle);
+		report.addColumn(plantime).addColumn(plan);
+		
+		StyleBuilder titleStyle = new StyleBuilder(true);
+		titleStyle.setHorizontalAlign(HorizontalAlign.CENTER);
+		titleStyle.setFont(Font.COMIC_SANS_BIG);
+	
+		
+		
+		StyleBuilder subTitleStyle1 = new StyleBuilder(true);
+		subTitleStyle1.setHorizontalAlign(HorizontalAlign.JUSTIFY);
+        subTitleStyle1.setFont(Font.COMIC_SANS_BIG);
+		
+
+		StyleBuilder subTitleStyle2 = new StyleBuilder(true);
+		subTitleStyle2.setHorizontalAlign(HorizontalAlign.JUSTIFY);
+	    subTitleStyle2.setFont(Font.COMIC_SANS_BIG);
+	    
+	    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		String date = dateFormat.format(new Date());
+		report.setTitle("Child Plan of the week("+date+")");
+		report.setTitleStyle(titleStyle.build()); 
+
+        report.setSubtitle("Roll No: "+childid+". Name: "+childnameplate.getChild_first_name()+". Surname: "+childnameplate.getChild_last_name()+". DOB: "+childnameplate.getDate_of_birth()+". Group: "+childnameplate.getAge_group()).setDefaultStyles(headerStyle,headerStyle, headerStyle, detailTextStyle);
+        report.setSubtitleHeight(40);
+	    report.setSubtitleStyle(subTitleStyle1.build());
+        report.setUseFullPageWidth(true);
+    	System.out.println("insede printReport 2 "+ childid);
+		return report.build();
+
+}
+	// a service which communicates with db and takes child name plate
+	private ChildNamePlate getchildNameplate(int childid) {
+		
+		ChildNamePlate childnameplate = null;
+		
+		final String sql = "select ci.name,ci.surname,ci.dob,ag.name " 
+                + "from child_info ci join age_group ag "
+		          + "on(ci.fk_age_group=ag.idage_group) " 
+		          + "where ci.idchild=?;";
+		try {
+			ResultSet resultset = dbConnector.getReport(sql, childid);
+			if(resultset.next()){
+			childnameplate = new ChildNamePlate(resultset.getString(1), resultset.getString(2), resultset.getString(3),
+					resultset.getString(4));}
+			
+
+		} catch (SQLException e) {
+
+			e.printStackTrace();
+		}
+		return childnameplate;
+
+	}
+	//  follwoing method return the style object for: headers,content,numbers ezc.
 	private Style createHeaderStyle() {
 		StyleBuilder sb = new StyleBuilder(true);
-		sb.setFont(Font.VERDANA_MEDIUM_BOLD);
+		sb.setFont(Font.COMIC_SANS_BIG_BOLD);
 		sb.setBorder(Border.THIN());
-		sb.setBorderBottom(Border.PEN_2_POINT());
-
+		
+		sb.setBorder(Border.PEN_2_POINT());
 		sb.setHorizontalAlign(HorizontalAlign.CENTER);
 		sb.setVerticalAlign(VerticalAlign.MIDDLE);
+		sb.setTextColor(Color.BLACK);
+		sb.setBackgroundColor(Color.PINK);
 		sb.setTransparency(Transparency.OPAQUE);
 		return sb.build();
 	}
@@ -64,8 +154,8 @@ public class ReportFiller {
 	private Style createDetailTextStyle() {
 		StyleBuilder sb = new StyleBuilder(true);
 		sb.setFont(Font.VERDANA_MEDIUM);
-		sb.setBorder(Border.DOTTED());
-
+		sb.setBorder(Border.THIN());
+        sb.setTextColor(Color.GREEN);
 		sb.setHorizontalAlign(HorizontalAlign.LEFT);
 		sb.setVerticalAlign(VerticalAlign.MIDDLE);
 		sb.setPaddingLeft(5);
@@ -76,8 +166,7 @@ public class ReportFiller {
 		StyleBuilder sb = new StyleBuilder(true);
 		sb.setFont(Font.VERDANA_MEDIUM);
 		sb.setBorder(Border.DOTTED());
-
-		sb.setHorizontalAlign(HorizontalAlign.RIGHT);
+        sb.setHorizontalAlign(HorizontalAlign.RIGHT);
 		sb.setVerticalAlign(VerticalAlign.MIDDLE);
 		sb.setPaddingRight(5);
 		return sb.build();
@@ -90,7 +179,7 @@ public class ReportFiller {
 		return columnState;
 	}
 
-	private DynamicReport getReport(Style headerStyle, Style detailTextStyle, Style detailNumStyle)
+	private DynamicReport getPerformanceReport(Style headerStyle, Style detailTextStyle, Style detailNumStyle)
 			throws ColumnBuilderException, ClassNotFoundException {
 
 		DynamicReportBuilder report = new DynamicReportBuilder();
@@ -100,51 +189,53 @@ public class ReportFiller {
 				detailTextStyle);
 		AbstractColumn sessionname = createColumn("sessionname", String.class, "Session", 50, headerStyle,
 				detailTextStyle);
-		AbstractColumn mon = createColumn("mon", Integer.class, "MON", 10, headerStyle, detailNumStyle);
-		AbstractColumn tue = createColumn("tue", Integer.class, "TUE", 10, headerStyle, detailNumStyle);
-		AbstractColumn wen = createColumn("wen", Integer.class, "WEN", 10, headerStyle, detailNumStyle);
-		AbstractColumn thu = createColumn("thu", Integer.class, "THU", 10, headerStyle, detailNumStyle);
-		AbstractColumn fri = createColumn("fri", Integer.class, "FRI", 10, headerStyle, detailNumStyle);
-		AbstractColumn total = createColumn("total", Integer.class, "Total", 10, headerStyle, detailNumStyle);
+		AbstractColumn mon = createColumn("mon", Integer.class, "MON", 20, headerStyle, detailNumStyle);
+		AbstractColumn tue = createColumn("tue", Integer.class, "TUE", 20, headerStyle, detailNumStyle);
+		AbstractColumn wen = createColumn("wen", Integer.class, "WEN", 20, headerStyle, detailNumStyle);
+		AbstractColumn thu = createColumn("thu", Integer.class, "THU", 20, headerStyle, detailNumStyle);
+		AbstractColumn fri = createColumn("fri", Integer.class, "FRI", 20, headerStyle, detailNumStyle);
+		AbstractColumn total = createColumn("total", Integer.class, "Total", 20, headerStyle, detailNumStyle);
 		AbstractColumn percent = createColumn("percentage", Float.class, "Percentage", 20, headerStyle, detailNumStyle);
 		
 		
 		report.addColumn(activityName).addColumn(sessionname).addColumn(mon).addColumn(tue).addColumn(wen)
 				.addColumn(thu).addColumn(fri).addColumn(total).addColumn(percent);
-				
-				 
-//				
-//		AbstractColumn childid = createColumn("childid", Integer.class, "Name", 30, headerStyle, detailNumStyle);
-//
-//		AbstractColumn name = createColumn("name", String.class, "Name", 30, headerStyle, detailNumStyle);
-//		AbstractColumn surname = createColumn("surname", String.class, "Name", 30, headerStyle, detailNumStyle);
-//		AbstractColumn dateOfBirth = createColumn("dateOfBirth", String.class, "Name", 30, headerStyle, detailNumStyle);
-//		AbstractColumn ageGroup = createColumn("ageGroup", String.class, "Name", 30, headerStyle, detailNumStyle);
 
 		StyleBuilder titleStyle = new StyleBuilder(true);
 		titleStyle.setHorizontalAlign(HorizontalAlign.CENTER);
 		titleStyle.setBackgroundColor(Color.YELLOW);
 		titleStyle.setFont(Font.COMIC_SANS_BIG);
 		
+		StyleBuilder subTitleStyle1 = new StyleBuilder(true);
+		subTitleStyle1.setHorizontalAlign(HorizontalAlign.JUSTIFY);
+		subTitleStyle1.setBackgroundColor(Color.PINK);
+		subTitleStyle1.setFont(Font.COMIC_SANS_BIG);
 
 		StyleBuilder subTitleStyle2 = new StyleBuilder(true);
 		subTitleStyle2.setHorizontalAlign(HorizontalAlign.JUSTIFY);
 		subTitleStyle2.setBackgroundColor(Color.PINK);
 		subTitleStyle2.setFont(Font.COMIC_SANS_BIG);
 		
-		report.setTitle("Child Report");
-		report.setTitleStyle(titleStyle.build());
-
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		String date = dateFormat.format(new Date());
-		report.setSubtitle(date);
+		report.setTitle("Child Report("+date+")");
+		report.setTitleStyle(titleStyle.build());
+
+	
+		
+		report.setSubtitle(date).setDefaultStyles(headerStyle,headerStyle, headerStyle, detailTextStyle);
 		report.setSubtitleStyle(subTitleStyle2.build());
-		ChildReportPOJO childreportpojo=list.iterator().next();
-        report.setSubtitle("RollNO: "+childreportpojo.getChildid()+", Name: "+childreportpojo.getName()+", Surname: "+childreportpojo.getSurname()+", Group: "+childreportpojo.getAgeGroup()+", DOB: "+childreportpojo.getDateOfBirth());
+		
+		ChildReportPOJO childreportpojo=reportlist.iterator().next();
+        
+		report.setSubtitle("RollNO: "+childreportpojo.getChildid()+". Name: "+childreportpojo.getName()+". Surname: "+childreportpojo.getSurname()+". Group: "+childreportpojo.getAgeGroup()+". DOB: "+childreportpojo.getDateOfBirth()).setDefaultStyles(headerStyle,headerStyle, headerStyle, detailTextStyle);
 		report.setSubtitleHeight(40);
-		report.setSubtitleStyle(subTitleStyle2.build());
+		report.setSubtitleStyle(subTitleStyle1.build());
+		
         report.setUseFullPageWidth(true);
 
 		return report.build();
 	}
+
+	
 }

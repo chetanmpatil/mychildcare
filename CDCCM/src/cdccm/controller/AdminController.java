@@ -77,7 +77,7 @@ public class AdminController {
 				break;
 				
 			case 9:
-				GenerateSchedule();
+				GenerateAndSendSchedule();
 				break;
 			case 10:
 
@@ -91,6 +91,11 @@ public class AdminController {
 			}
 
 		} while (choiceFlag);
+	}
+
+	private void GenerateAndSendSchedule() {
+	
+		
 	}
 
 	private void AddParent() throws SQLException {
@@ -243,7 +248,7 @@ public class AdminController {
 		int choice = 0;
 		System.out.println("Welcome To Report Generation!!");
 		System.out.println(
-				"Now Select An Operation To Perform\n1. Generate Report For One Children\n2. Generate Bulck Report");
+				"Now Select An Operation To Perform\n1. Generate performance Report For One Children\n2. Generate performance Report for all \n3. Generate Schedule Copies");
 		choice = inputScanner.nextInt();
 		do {
 			switch (choice) {
@@ -254,7 +259,11 @@ public class AdminController {
 				choiceFlag=false;
 				break;
 			case 2:
-				//adminService.generateBulckReport(childid);
+				adminService.generateBulckReport();
+				choiceFlag=false;
+				break;
+			case 3:
+				adminService.GenerateScheduleReport();
 				choiceFlag=false;
 				break;
 			

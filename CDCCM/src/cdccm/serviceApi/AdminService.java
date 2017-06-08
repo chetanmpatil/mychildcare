@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import cdccm.pojo.CareProviderPOJO;
+import cdccm.pojo.ChildNamePlate;
 import cdccm.pojo.ChildPOJO;
 import cdccm.pojo.ContactPOJO;
 import cdccm.pojo.ParentPOJO;
@@ -21,7 +22,11 @@ public interface AdminService {
 	void selectSchedule();
 	void selectNewsEvents();
 	void generateReport(int childid);
+	void GenerateScheduleReport();
+	ChildNamePlate getAchildInfo(int childid);
 	ResultSet listAllChild() throws SQLException;
 	ResultSet displayInfo(int id,String tableName) throws SQLException;
+	void generateBulckReport();
+	
 
 }
