@@ -36,18 +36,17 @@ public class ReportFiller {
 	private final Collection<SchedulePOJO> schedulelist = new ArrayList<>();
 	private MySQLDBConnector dbConnector;
 
-	public ReportFiller(Collection<? extends Object> option) {
+	public ReportFiller(Collection<? extends Object> listOfObjectsforReport) {
 		dbConnector = MySQLDBConnector.getInstance();
-		for (Object obj : option) {
+		for (Object obj : listOfObjectsforReport) {
 			if (obj.getClass().getName().equals("cdccm.pojo.ChildReportPOJO")) {
 				System.out.println("Inside cdccm.pojo.ChildReportPOJO");
-				this.reportlist = (Collection<ChildReportPOJO>) option;
+				this.reportlist = (Collection<ChildReportPOJO>) listOfObjectsforReport;
 				// reportlist.addAll((Collection<? extends
 				// ChildReportPOJO>)option);
 				break;
 			} else if (obj.getClass().getName().equals("cdccm.pojo.SchedulePOJO")) {
-
-				schedulelist.addAll((Collection<? extends SchedulePOJO>) option);
+               schedulelist.addAll((Collection<? extends SchedulePOJO>) listOfObjectsforReport);
 				break;
 			}
 		}
