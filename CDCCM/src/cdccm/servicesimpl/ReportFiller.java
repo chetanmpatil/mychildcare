@@ -46,7 +46,7 @@ public class ReportFiller {
 				// ChildReportPOJO>)option);
 				break;
 			} else if (obj.getClass().getName().equals("cdccm.pojo.SchedulePOJO")) {
-               schedulelist.addAll((Collection<? extends SchedulePOJO>) listOfObjectsforReport);
+				schedulelist.addAll((Collection<? extends SchedulePOJO>) listOfObjectsforReport);
 				break;
 			}
 		}
@@ -197,16 +197,27 @@ public class ReportFiller {
 				detailTextStyle);
 		AbstractColumn sessionname = createColumn("sessionname", String.class, "Session", 50, headerStyle,
 				detailTextStyle);
-		AbstractColumn mon = createColumn("mon", Integer.class, "MON", 20, headerStyle, detailNumStyle);
-		AbstractColumn tue = createColumn("tue", Integer.class, "TUE", 20, headerStyle, detailNumStyle);
-		AbstractColumn wen = createColumn("wen", Integer.class, "WEN", 20, headerStyle, detailNumStyle);
-		AbstractColumn thu = createColumn("thu", Integer.class, "THU", 20, headerStyle, detailNumStyle);
-		AbstractColumn fri = createColumn("fri", Integer.class, "FRI", 20, headerStyle, detailNumStyle);
-		AbstractColumn total = createColumn("total", Integer.class, "Total", 20, headerStyle, detailNumStyle);
-		AbstractColumn percent = createColumn("percentage", Float.class, "Percentage", 20, headerStyle, detailNumStyle);
+		AbstractColumn providername = createColumn("providername", String.class, "Provider Name", 50, headerStyle,
+				detailTextStyle);
+		AbstractColumn feedback = createColumn("feedback", String.class, "feedback", 100, headerStyle, detailTextStyle);
+		// AbstractColumn mon = createColumn("mon", Integer.class, "MON", 20,
+		// headerStyle, detailNumStyle);
+		// AbstractColumn tue = createColumn("tue", Integer.class, "TUE", 20,
+		// headerStyle, detailNumStyle);
+		// AbstractColumn wen = createColumn("wen", Integer.class, "WEN", 20,
+		// headerStyle, detailNumStyle);
+		// AbstractColumn thu = createColumn("thu", Integer.class, "THU", 20,
+		// headerStyle, detailNumStyle);
+		// AbstractColumn fri = createColumn("fri", Integer.class, "FRI", 20,
+		// headerStyle, detailNumStyle);
+		// AbstractColumn total = createColumn("total", Integer.class, "Total",
+		// 20, headerStyle, detailNumStyle);
+		// AbstractColumn percent = createColumn("percentage", Float.class,
+		// "Percentage", 20, headerStyle, detailNumStyle);
 
-		report.addColumn(activityName).addColumn(sessionname).addColumn(mon).addColumn(tue).addColumn(wen)
-				.addColumn(thu).addColumn(fri).addColumn(total).addColumn(percent);
+		report.addColumn(activityName).addColumn(sessionname).addColumn(providername).addColumn(feedback);
+		// addColumn(mon).addColumn(tue).addColumn(wen)
+		// .addColumn(thu).addColumn(fri).addColumn(total).addColumn(percent);
 
 		StyleBuilder titleStyle = new StyleBuilder(true);
 		titleStyle.setHorizontalAlign(HorizontalAlign.CENTER);

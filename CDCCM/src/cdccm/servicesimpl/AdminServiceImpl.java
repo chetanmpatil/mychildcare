@@ -119,20 +119,28 @@ public class AdminServiceImpl implements AdminService {
 		Collection<ChildReportPOJO> listofscore = new ArrayList<>();
 		System.out.println("gerenating report for Child " + childid);
 		ResultSet childresult;
-		String sql = "select ci.idchild,ci.name,ci.surname,ci.dob, ag.name as ageGroup,a.activity_name,ds.session_name as sessionName,"
-				+ "ifnull(r.MON,0) as MON,ifnull(r.TUE,0) as TUE,ifnull(r.WEN,0)as WEN,ifnull(r.THU,0) as THU,ifnull(r.FRI,0) as FRI,"
-				+ "(ifnull(r.MON,0)+ifnull(r.TUE,0)+ifnull(r.WEN,0)+ifnull(r.THU,0)+ifnull(r.FRI,0)) as total,"
-				+ "cast(((ifnull(r.MON,0)+ifnull(r.TUE,0)+ifnull(r.WEN,0)+ifnull(r.THU,0)+ifnull(r.FRI,0))*100/500) as decimal(5,2)) as Percentage1"
-				+ " from report r join child_info ci join day_session ds join age_group ag join activity a on(r.fk_idchild=ci.idchild and r.fk_idsession=ds.idsession and ci.fk_age_group=ag.idage_group and r.fk_idactivity=a.idactivity) "
-				+ "where r.fk_idchild=? " + "group by ci.idchild,ds.session_name;";
+//		String sql = "select ci.idchild,ci.name,ci.surname,ci.dob, ag.name as ageGroup,a.activity_name,ds.session_name as sessionName,"
+//				+ "ifnull(r.MON,0) as MON,ifnull(r.TUE,0) as TUE,ifnull(r.WEN,0)as WEN,ifnull(r.THU,0) as THU,ifnull(r.FRI,0) as FRI,"
+//				+ "(ifnull(r.MON,0)+ifnull(r.TUE,0)+ifnull(r.WEN,0)+ifnull(r.THU,0)+ifnull(r.FRI,0)) as total,"
+//				+ "cast(((ifnull(r.MON,0)+ifnull(r.TUE,0)+ifnull(r.WEN,0)+ifnull(r.THU,0)+ifnull(r.FRI,0))*100/500) as decimal(5,2)) as Percentage1"
+//				+ " from report r join child_info ci join day_session ds join age_group ag join activity a on(r.fk_idchild=ci.idchild and r.fk_idsession=ds.idsession and ci.fk_age_group=ag.idage_group and r.fk_idactivity=a.idactivity) "
+//				+ "where r.fk_idchild=? " + "group by ci.idchild,ds.session_name;";
 
+		String sql="select ci.idchild,ci.name,ci.surname,ci.dob, ag.name as ageGroup,a.activity_name,ds.session_name as sessionName,cp.name,r.care_provider_feedback "
+				  +"from report r join child_info ci join day_session ds join age_group ag join activity a join care_provider cp "
+				  +"on(r.fk_idchild=ci.idchild and r.fk_idsession=ds.idsession and ci.fk_age_group=ag.idage_group and r.fk_idactivity=a.idactivity and r.fk_idprovider=cp.idcare_provider) "
+				  +"where r.fk_idchild=? " + "group by ci.idchild,ds.session_name;";
 		try {
 			ResultSet resultset = dbConnector.getReport(sql, childid);
 			while (resultset.next()) {
+//				listofscore.add(new ChildReportPOJO(resultset.getInt(1), resultset.getString(2), resultset.getString(3),
+//						resultset.getString(4), resultset.getString(5), resultset.getString(6), resultset.getString(7),
+//						resultset.getInt(8), resultset.getInt(9), resultset.getInt(10), resultset.getInt(11),
+//						resultset.getInt(12), resultset.getInt(13), (float) resultset.getDouble(14)));
+				
 				listofscore.add(new ChildReportPOJO(resultset.getInt(1), resultset.getString(2), resultset.getString(3),
 						resultset.getString(4), resultset.getString(5), resultset.getString(6), resultset.getString(7),
-						resultset.getInt(8), resultset.getInt(9), resultset.getInt(10), resultset.getInt(11),
-						resultset.getInt(12), resultset.getInt(13), (float) resultset.getDouble(14)));
+						resultset.getString(8), resultset.getString(9)));
 			}
 
 		} catch (SQLException e) {
@@ -149,21 +157,28 @@ public class AdminServiceImpl implements AdminService {
 		Collection<ChildReportPOJO> subsetoflistofscore = new ArrayList<>();
 		System.out.println("gerenating report for Children ");
 		ResultSet childresult;
-		String sql = "select ci.idchild,ci.name,ci.surname,ci.dob, ag.name as ageGroup,a.activity_name,ds.session_name as sessionName,"
-				+ "ifnull(r.MON,0) as MON,ifnull(r.TUE,0) as TUE,ifnull(r.WEN,0)as WEN,ifnull(r.THU,0) as THU,ifnull(r.FRI,0) as FRI,"
-				+ "(ifnull(r.MON,0)+ifnull(r.TUE,0)+ifnull(r.WEN,0)+ifnull(r.THU,0)+ifnull(r.FRI,0)) as total,"
-				+ "cast(((ifnull(r.MON,0)+ifnull(r.TUE,0)+ifnull(r.WEN,0)+ifnull(r.THU,0)+ifnull(r.FRI,0))*100/500) as decimal(5,2)) as Percentage1"
-				+ " from report r join child_info ci join day_session ds join age_group ag join activity a on(r.fk_idchild=ci.idchild and r.fk_idsession=ds.idsession and ci.fk_age_group=ag.idage_group and r.fk_idactivity=a.idactivity) "
-				+ "group by ci.idchild,ds.session_name;";
-
+//		String sql = "select ci.idchild,ci.name,ci.surname,ci.dob, ag.name as ageGroup,a.activity_name,ds.session_name as sessionName,"
+//				+ "ifnull(r.MON,0) as MON,ifnull(r.TUE,0) as TUE,ifnull(r.WEN,0)as WEN,ifnull(r.THU,0) as THU,ifnull(r.FRI,0) as FRI,"
+//				+ "(ifnull(r.MON,0)+ifnull(r.TUE,0)+ifnull(r.WEN,0)+ifnull(r.THU,0)+ifnull(r.FRI,0)) as total,"
+//				+ "cast(((ifnull(r.MON,0)+ifnull(r.TUE,0)+ifnull(r.WEN,0)+ifnull(r.THU,0)+ifnull(r.FRI,0))*100/500) as decimal(5,2)) as Percentage1"
+//				+ " from report r join child_info ci join day_session ds join age_group ag join activity a on(r.fk_idchild=ci.idchild and r.fk_idsession=ds.idsession and ci.fk_age_group=ag.idage_group and r.fk_idactivity=a.idactivity) "
+//				+ "group by ci.idchild,ds.session_name;";
+		String sql="select ci.idchild,ci.name,ci.surname,ci.dob, ag.name as ageGroup,a.activity_name,ds.session_name as sessionName,cp.name,r.care_provider_feedback "
+				  +"from report r join child_info ci join day_session ds join age_group ag join activity a join care_provider cp "
+				  +"on(r.fk_idchild=ci.idchild and r.fk_idsession=ds.idsession and ci.fk_age_group=ag.idage_group and r.fk_idactivity=a.idactivity and r.fk_idprovider=cp.idcare_provider) "
+				  + "group by ci.idchild,ds.session_name;";
 		try {
 			ResultSet resultset = dbConnector.query(sql);
 
 			while (resultset.next()) {
+//				listofscore.add(new ChildReportPOJO(resultset.getInt(1), resultset.getString(2), resultset.getString(3),
+//						resultset.getString(4), resultset.getString(5), resultset.getString(6), resultset.getString(7),
+//						resultset.getInt(8), resultset.getInt(9), resultset.getInt(10), resultset.getInt(11),
+//						resultset.getInt(12), resultset.getInt(13), (float) resultset.getDouble(14)));
+				
 				listofscore.add(new ChildReportPOJO(resultset.getInt(1), resultset.getString(2), resultset.getString(3),
 						resultset.getString(4), resultset.getString(5), resultset.getString(6), resultset.getString(7),
-						resultset.getInt(8), resultset.getInt(9), resultset.getInt(10), resultset.getInt(11),
-						resultset.getInt(12), resultset.getInt(13), (float) resultset.getDouble(14)));
+						resultset.getString(8), resultset.getString(9)));
 				System.out.println(resultset.getInt(1) + "" + resultset.getString(2));
 			}
 			Iterator<ChildReportPOJO> it = listofscore.iterator();
