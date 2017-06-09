@@ -7,12 +7,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+
+import com.lowagie.text.List;
+
+import cdccm.pojo.ParentNamePlate;
 
 public class MySQLDBConnector {
-	public Connection conn;
-	private Statement resultStatement;
-	private static MySQLDBConnector dbConnectorObj;
-	private PreparedStatement preparedstatement;
+	public Connection conn=null;
+	private Statement resultStatement=null;
+	private static MySQLDBConnector dbConnectorObj=null;
+	private PreparedStatement preparedstatement=null;
 
 	private MySQLDBConnector() {
 		String url = "jdbc:mysql://localhost:3306/";
@@ -39,6 +44,21 @@ public class MySQLDBConnector {
 		resultStatement = conn.createStatement();
 		ResultSet res = resultStatement.executeQuery(query);
 		return res;
+	}
+	public ArrayList<ParentNamePlate> getParentNameplate(String query) throws SQLException
+	{   ResultSet resultset=null;
+	    ArrayList<ParentNamePlate> parentnameplate=new ArrayList<ParentNamePlate>();
+		try {
+			resultStatement = conn.createStatement();
+			resultset = resultStatement.executeQuery(query);
+			while(resultset.next())
+			{
+				parentnameplate.add(new ParentNamePlate(resultset.getString(1),resultset.getString(2),resultset.getInt(3)));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return parentnameplate;
 	}
 
 	public int insert(String insertQuery) throws SQLException {
