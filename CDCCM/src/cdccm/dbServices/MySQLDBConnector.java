@@ -57,6 +57,9 @@ public class MySQLDBConnector {
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}finally
+		{
+			conn.close();
 		}
 		return parentnameplate;
 	}

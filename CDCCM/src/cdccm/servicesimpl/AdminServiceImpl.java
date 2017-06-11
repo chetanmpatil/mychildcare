@@ -36,8 +36,7 @@ public class AdminServiceImpl implements AdminService {
 	public AdminServiceImpl() {
 		dbConnector = MySQLDBConnector.getInstance();
 	}
-
-	@Override
+   @Override
 	public void insertChildDetails(ChildPOJO childPOJO) throws SQLException {
 		int age = CdccmUtilities.getAge(childPOJO.getDob());
 
@@ -157,12 +156,6 @@ public class AdminServiceImpl implements AdminService {
 		Collection<ChildReportPOJO> subsetoflistofscore = new ArrayList<>();
 		System.out.println("gerenating report for Children ");
 		ResultSet childresult;
-//		String sql = "select ci.idchild,ci.name,ci.surname,ci.dob, ag.name as ageGroup,a.activity_name,ds.session_name as sessionName,"
-//				+ "ifnull(r.MON,0) as MON,ifnull(r.TUE,0) as TUE,ifnull(r.WEN,0)as WEN,ifnull(r.THU,0) as THU,ifnull(r.FRI,0) as FRI,"
-//				+ "(ifnull(r.MON,0)+ifnull(r.TUE,0)+ifnull(r.WEN,0)+ifnull(r.THU,0)+ifnull(r.FRI,0)) as total,"
-//				+ "cast(((ifnull(r.MON,0)+ifnull(r.TUE,0)+ifnull(r.WEN,0)+ifnull(r.THU,0)+ifnull(r.FRI,0))*100/500) as decimal(5,2)) as Percentage1"
-//				+ " from report r join child_info ci join day_session ds join age_group ag join activity a on(r.fk_idchild=ci.idchild and r.fk_idsession=ds.idsession and ci.fk_age_group=ag.idage_group and r.fk_idactivity=a.idactivity) "
-//				+ "group by ci.idchild,ds.session_name;";
 		String sql="select ci.idchild,ci.name,ci.surname,ci.dob, ag.name as ageGroup,a.activity_name,ds.session_name as sessionName,cp.name,r.care_provider_feedback "
 				  +"from report r join child_info ci join day_session ds join age_group ag join activity a join care_provider cp "
 				  +"on(r.fk_idchild=ci.idchild and r.fk_idsession=ds.idsession and ci.fk_age_group=ag.idage_group and r.fk_idactivity=a.idactivity and r.fk_idprovider=cp.idcare_provider) "

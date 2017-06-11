@@ -10,14 +10,17 @@ import cdccm.pojo.ContactPOJO;
 import cdccm.pojo.ParentPOJO;
 import cdccm.serviceApi.AdminService;
 import cdccm.servicesimpl.AdminServiceImpl;
-import cdccm.servicesimpl.EmailService;;
+import cdccm.servicesimpl.EmailService;
+import cdccm.utilities.CdccmUtilities;
+import cdccm.utilities.EmailValidator;;
 
 public class AdminController {
 
 	private Scanner inputScanner;
 	private boolean choiceFlag = true;
 	private AdminService adminService;
-    private EmailService emailservice;
+	private EmailService emailservice;
+
 	public AdminController(Scanner inputScanner) {
 		this.inputScanner = inputScanner;
 		adminService = new AdminServiceImpl();
@@ -70,13 +73,13 @@ public class AdminController {
 				ShowAllChildren();
 				break;
 			case 7:
-				GenerateReport();
+				GenerateReport();// chetan
 				System.out.println("Number taken");
 				break;
-			case 8:
+			case 8:// chetan
 				SendNewsEventsReports();
 				break;
-				
+
 			case 9:
 				GenerateAndSendSchedule();
 				break;
@@ -95,8 +98,7 @@ public class AdminController {
 	}
 
 	private void GenerateAndSendSchedule() {
-	
-		
+
 	}
 
 	private void AddParent() throws SQLException {
@@ -174,67 +176,91 @@ public class AdminController {
 
 	private void SendNewsEventsReports() {
 		boolean choiceFlag = true;
-		String messageHeadading=null;
-		String messageBody=null;
-		Scanner bodyscanner=null;
-		String date=null;
+		String messageHeadading = null;
+		String messageBody = null;
+		Scanner bodyscanner = null;
+		String date = null;
 		int choice = 0;
-		
+
 		System.out.println("-------------------------Welcome To Mailing Service-------------------");
-		System.out.println("Now Select An Operation To Perform\n1. Send Performance Reports \n2. Send Schedule \n3. Send Event Information");
-		choice =inputScanner.nextInt();
+		System.out.println(
+				"Now Select An Operation To Perform\n1. Send Performance Reports to Everyone\n2. Send Schedule Everyone\n3. Send Event/News Information\n4. Send Email to Specific Person ");
+		choice = inputScanner.nextInt();
+		inputScanner.nextLine();
 		do {
 			switch (choice) {
 			case 1:
 				System.out.println("Enter The Report date in(yyyy-mm-dd) format");
-			date=inputScanner.next();
-				
-				System.out.println("Enter The Message Heading");
-				 messageHeadading=inputScanner.next();
-				
-				bodyscanner=new Scanner(System.in);
-				System.out.println("Enter The Message Body");
-			    messageBody=bodyscanner.nextLine();
-				//make call to emailservice with date,head,body
-				EmailService emailService =new EmailService(date,messageHeadading,messageBody);
-			   //send the report
-				emailService.send("performance".toString());
-				choiceFlag=false;
-		        break;
+				date = inputScanner.nextLine();
+				if (CdccmUtilities.isValidFormat(date)) {
+					System.out.println("valid date");
+					System.out.println("Enter The Message Heading");
+					messageHeadading = inputScanner.nextLine();
+					System.out.println("Enter The Message Body");
+					messageBody = inputScanner.nextLine();
+					// make call to emailservice with date,head,body
+					EmailService emailService = new EmailService(date, messageHeadading, messageBody);
+					// send the report
+					emailService.send("performance".toString());
+				}
+
+				choiceFlag = false;
+				break;
 			case 2:
 				System.out.println("Enter The Report date in(yyyy-mm-dd) format");
-			    date=inputScanner.next();
-				
-				System.out.println("Enter The Message Heading");
-			    messageHeadading=inputScanner.next();
-				
-			    bodyscanner=new Scanner(System.in);
-				System.out.println("Enter The Message Body");
-				messageBody=bodyscanner.nextLine();
-				EmailService emailService1 =new EmailService(date,messageHeadading,messageBody);
-				emailService1.send("schedule".toString());
-				choiceFlag=false;
+				date = inputScanner.nextLine();
+				if (CdccmUtilities.isValidFormat(date)) {
+					System.out.println("Enter The Message Heading");
+					messageHeadading = inputScanner.nextLine();
+
+					System.out.println("Enter The Message Body");
+					messageBody = inputScanner.nextLine();
+					System.out.println(date + " " + messageHeadading + " " + messageBody);
+					EmailService emailService1 = new EmailService(date, messageHeadading, messageBody);
+
+					emailService1.send("schedule".toString());
+				}
+				choiceFlag = false;
 				break;
 			case 3:
+				System.out.println("-----------------Send Event/News Information-----------------");
+
 				System.out.println("Enter The Message Heading");
-			    messageHeadading=inputScanner.next();
-				
-			    bodyscanner=new Scanner(System.in);
+				messageHeadading = inputScanner.nextLine();
+
 				System.out.println("Enter The Message Body");
-				messageBody=bodyscanner.nextLine();
-				EmailService emailService2 =new EmailService(date,messageHeadading,messageBody);
-				emailService2.send("schedule".toString());
-				choiceFlag=false;
+				messageBody = inputScanner.nextLine();
+
+				EmailService emailService2 = new EmailService(null, messageHeadading, messageBody);
+				emailService2.send("news".toString());
+				choiceFlag = false;
 				break;
-			
+			case 4:
+				System.out.println("-----------------Send Mail to Specific person-----------------");
+				System.out.println("Enter Email Id of the Person You want to send Email to");
+				String emailid = inputScanner.nextLine();
+				EmailValidator vatidator = new EmailValidator();
+				if (vatidator.validate(emailid)) {
+					System.out.println("Enter The Message Heading");
+					messageHeadading = inputScanner.nextLine();
+
+					System.out.println("Enter The Message Body");
+					messageBody = inputScanner.nextLine();
+
+					EmailService emailService3 = new EmailService(emailid.trim(), messageHeadading, messageBody);
+					emailService3.sendSpecificMail(emailid, messageHeadading, messageBody);
+				} else {
+					System.out.println("**Invalid email Id**");
+				}
+				choiceFlag = false;
+				break;
+
 			default:
 				System.out.println("Wrong Choice");
-				choiceFlag=false;
+				choiceFlag = false;
 			}
 		} while (choiceFlag);
 	}
-
-	
 
 	private void AddActivityToChild() {
 
@@ -303,7 +329,7 @@ public class AdminController {
 	}
 
 	private void GenerateReport() {
-		
+
 		boolean choiceFlag = true;
 		// String tableName="";
 		int choice = 0;
@@ -317,23 +343,22 @@ public class AdminController {
 				System.out.println("Enter Childid to create the report");
 				int childid = this.inputScanner.nextInt();
 				adminService.generateReport(childid);
-				choiceFlag=false;
+				choiceFlag = false;
 				break;
 			case 2:
 				adminService.generateBulckPerformanceReport();
-				choiceFlag=false;
+				choiceFlag = false;
 				break;
 			case 3:
 				adminService.GenerateScheduleReport();
-				choiceFlag=false;
+				choiceFlag = false;
 				break;
-			
+
 			default:
 				System.out.println("Wrong Choice");
-				choiceFlag=false;
+				choiceFlag = false;
 			}
 		} while (choiceFlag);
-		
 
 	}
 

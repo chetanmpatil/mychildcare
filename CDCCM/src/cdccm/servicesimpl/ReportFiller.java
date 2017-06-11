@@ -236,7 +236,7 @@ public class ReportFiller {
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		String date = dateFormat.format(new Date());
-		report.setTitle("Child Report   on:" + date + ")");
+		report.setTitle("Child Report   (on:" + date + ")");
 		report.setTitleStyle(titleStyle.build());
 
 		report.setSubtitle(date).setDefaultStyles(headerStyle, headerStyle, headerStyle, detailTextStyle);

@@ -1,77 +1,95 @@
 package cdccm.servicesimpl;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 import cdccm.dbServices.MySQLDBConnector;
+import cdccm.helper.PropertyReader;
 import cdccm.pojo.ParentNamePlate;
 
 public class EmailService {
 	private MySQLDBConnector dbConnector = null;
-    private String date;
-    private String messageHeadading;
-    private String messageBody;
-    private  String directorylocation;
-  
-	public EmailService(String date,String messageHeadading,String messageBody) {
+	private String date;
+	private String messageHeadading;
+	private String messageBody;
+	private String directorylocation;
+	
+	public EmailService(String date, String messageHeadading, String messageBody) {
 		dbConnector = MySQLDBConnector.getInstance();
-		this.date=date;
-		this.messageHeadading=messageHeadading;
-		this.messageBody=messageBody;
+		this.date = date;
+		this.messageHeadading = messageHeadading;
+		this.messageBody = messageBody;
+	
 	}
-	public void send(String whichmail)
-	{
-		if(whichmail.equals("performance"))
-		{
-			this.directorylocation = "C:/mypdf/performancedocs/";
-		}else if(whichmail.equals("schedule"))
-		{
-			this.directorylocation = "C:/mypdf/scheduledocs/";
-		}
-		else if(whichmail.equals("news"))
-		{
+
+	public void send(String whichmail) {
+   
+		if (whichmail.equals("performance")) {
+			this.directorylocation ="C:/mypdf/performancedocs/";
+		} else if (whichmail.equals("schedule")) {
+			this.directorylocation ="C:/mypdf/scheduledocs/";
+		} else if (whichmail.equals("news")) {
+
 			this.directorylocation = null;
 		}
-		SendPerformanceReport();
+		constructMail();
 	}
-
-	private void SendPerformanceReport() {
+    public void sendSpecificMail(String emailid,String heading,String body)
+    {
+    	MailSender mailsender = new MailSender(this.messageHeadading, body, emailid, null);
+		mailsender.sendMail();
+    }
+	private void constructMail() {
 		ParentNamePlate parentnameplate = null;
 		ArrayList<ParentNamePlate> listofparentnameplate = new ArrayList<ParentNamePlate>();
-		
+
 		String fileNames[] = null;
 		String emailids[] = null;
-		File mainFolder = new File(this.directorylocation);
-		// get all files in direcory
-		fileNames = getFiles(mainFolder);
-		// get all parent nameplates
+
 		listofparentnameplate = getAllParentsNameplate();
-
-		matchFileAndSend(listofparentnameplate, fileNames);
-
+		if (this.directorylocation == null && this.date == null) {
+	
+			SendEventInfo(listofparentnameplate);
+		} else {
+			File mainFolder = new File(this.directorylocation);
+			// get all files in direcory
+			fileNames = getFiles(mainFolder);
+			// get all parent nameplates
+			matchFileAndSend(listofparentnameplate, fileNames);
+		}
 	}
 
-	public void SendEventInfo() {
-
-	}
-
-	public void SendSchedule() {
-
+	/*
+	 * this method executes when there is no attachment but just information
+	 * about news and events
+	 */
+	private void SendEventInfo(ArrayList<ParentNamePlate> listOfParentNamePlates) {
+		Iterator<ParentNamePlate> it = listOfParentNamePlates.iterator();
+		while (it.hasNext()) {
+			ParentNamePlate parentnameplate = it.next();
+			String emailid = parentnameplate.getEmailid();
+			String messagebody = "Dear " + parentnameplate.getName() + " " + this.messageBody;
+			System.out.println(emailid + " :is queued ");
+			MailSender mailsender = new MailSender(this.messageHeadading, messagebody, emailid, null);
+			mailsender.sendMail();
+		}
 	}
 
 	/*
 	 * this method iteratos over the list of parents and available array of
 	 * files to search the appropriate file for that parent
 	 */
-	private void matchFileAndSend(ArrayList<ParentNamePlate> listOfParentNamePlates, String[] fileNames) {
+	private void matchFileAndSend(ArrayList<ParentNamePlate> listOfParentNamePlates, String[] fileNames)  {
 		Iterator<ParentNamePlate> it = listOfParentNamePlates.iterator();
 
 		while (it.hasNext()) {
 			ParentNamePlate parentnameplate = it.next();
 			int childid = parentnameplate.getChildid();
+			System.out.println("child id: " + childid + " is selected for sending");
 			for (int i = 0; i < fileNames.length; i++) {
 				String[] dateAndId = new String[3];
 				/* split the childid(0),date(1),filetype(2) */
@@ -80,20 +98,20 @@ public class EmailService {
 				// and date(entered)==date(report generated)
 				if ((Integer.parseInt(dateAndId[0]) == childid) && dateAndId[1].equals(this.date)) {
 					// file to attach with mail
-					String attachment=this.directorylocation+fileNames[i];
-					String email=parentnameplate.getEmailid();
-					String messagebody="Dear "+parentnameplate.getName()+" "+this.messageBody;
-					MailSender mailsender=new MailSender(this.messageHeadading,messagebody,email,attachment);
+					String attachment = this.directorylocation + fileNames[i];
+					String emailid = parentnameplate.getEmailid();
+					System.out.println(emailid + " :is queued " + "  for child id: " + childid);
+					String messagebody = "Dear " + parentnameplate.getName() + " " + this.messageBody;
+					MailSender mailsender = new MailSender(this.messageHeadading, messagebody, emailid, attachment);
 					mailsender.sendMail();
-					
+
 					break;
 				} else {// when entered date is wrong
 					if (i == (fileNames.length - 1)) {
 						System.out.println(
 								"Either date format is Wrong or Report is not available for: " + childid + " child");
-						break;
 					}
-                 }
+				}
 			}
 		}
 

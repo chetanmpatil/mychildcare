@@ -1,5 +1,6 @@
 package cdccm.servicesimpl;
 
+
 import java.util.Properties;
 
 import javax.activation.DataHandler;
@@ -17,20 +18,24 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+import cdccm.helper.PropertyReader;
+
 public class MailSender {
 	private String subject;
 	private String body;
 	private String to;
 	private String filepath;
+
 	public MailSender(String subject,String body,String to,String filepath)
 	{
 		this.subject=subject;
 		this.body=body;
 		this.to=to;
 		this.filepath=filepath;
+
 	}
 	@SuppressWarnings({ "restriction", "static-access" })
-    public void sendMail(){
+    public void sendMail() {
         
 		final String from = "chetan.patil.sender@gmail.com";
 		final String user = "chetan.patil.sender@gmail.com";
@@ -38,12 +43,18 @@ public class MailSender {
 		final String pass = "chetan.patil";
 		final int port=587;
 		// Get system properties
+//		final String from =this.emailproperties.getFrom();
+//		final String user =this.emailproperties.getUser();
+//        final String host = this.emailproperties.getPassword();
+//	    final String pass = this.emailproperties.getPassword();
+//	    final int port= Integer.parseInt(this.emailproperties.getPort());
+		// Get system properties
 		Properties properties = System.getProperties();
-
+    
 		// Setup mail server
 		properties.setProperty("mail.smtp.host", host);
 		properties.put("mail.smtp.starttls.enable", "true");
-		properties.put("mail.smtp.port", port);
+		properties.put("mail.smtp.port",port);
 		properties.put("mail.starttls.required", "true");
 		properties.put("mail.smtp.auth", "true");
 
@@ -52,7 +63,7 @@ public class MailSender {
 		// Get the default Session object.and provide authetication information
 		Session session = Session.getDefaultInstance(properties, new javax.mail.Authenticator() {
 			protected PasswordAuthentication getPasswordAuthentication() {
-				return new PasswordAuthentication(from, pass);
+				return new PasswordAuthentication(user,pass);
 			}
 		});
 		session.setDebug(false);
@@ -77,18 +88,18 @@ public class MailSender {
 
 			// Part two is attachment
 			messageBodyPart = new MimeBodyPart();
-		
+		    if(filepath!=null){
 			DataSource source = new FileDataSource(this.filepath);
 			messageBodyPart.setDataHandler(new DataHandler(source));
 			messageBodyPart.setFileName(this.filepath);
-			multipart.addBodyPart(messageBodyPart);
+		    }//multipart.addBodyPart(messageBodyPart);
 
 			// Send the complete message parts including,subject,body,attachment
 			message.setContent(multipart);
 
 			// Send message
 			Transport transport = session.getTransport("smtp");
-			transport.connect(host, user, pass);
+			transport.connect(host,user,pass);
 			transport.send(message, message.getAllRecipients());
 			transport.close();
 			System.out.println("Sent message successfully...to: "+ this.to);
