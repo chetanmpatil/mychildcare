@@ -2,6 +2,9 @@ package cdccm.controller;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import cdccm.pojo.AssignActivityPOJO;
@@ -29,7 +32,7 @@ public class AdminController {
 		adminService = new AdminServiceImpl();
 	}
 
-	public void startOperations() throws SQLException {
+	public void startOperations() throws SQLException, ParseException {
 		do {
 			System.out.println("User Logged In As Admin. \nNow Select An Operation To Perform");
 			System.out.println(
@@ -37,23 +40,24 @@ public class AdminController {
 							+ "\n9. Send News/Events/report To Parent \n10.Provide Feedback  Of Care Provider \n11.Maintain Meal Program \n12.Main Menu.");
 			int choice = 0;
 			choice = inputScanner.nextInt();
+			inputScanner.nextLine();
 			switch (choice) {
 			case 1:// done
 				try {
 					AddParent();
-					AddChild();
-
-					boolean addChildFlag = true;
-					do {
-						System.out.println("Want To Register Another Child (Y/N)");
-						char input = inputScanner.next().charAt(0);
-						if (input == 'Y' || input == 'y') {
-							AddChild();
-						} else {
-							System.out.println("Register Another Child Option Not Selected Prpperly, Try Again");
-							addChildFlag = false;
-						}
-					} while (addChildFlag);
+//					AddChild();
+//
+//					boolean addChildFlag = true;
+//					do {
+//						System.out.println("Want To Register Another Child (Y/N)");
+//						char input = inputScanner.next().charAt(0);
+//						if (input == 'Y' || input == 'y') {
+//							AddChild();
+//						} else {
+//							System.out.println("Register Another Child Option Not Selected Prpperly, Try Again");
+//							addChildFlag = false;
+//						}
+//					} while (addChildFlag);
 
 					System.out.println("That's All Folks!! ");
 				} catch (SQLException e) {
@@ -127,10 +131,37 @@ public class AdminController {
 
 	}
 
-	private void AddParent() throws SQLException {
+	private void AddParent() throws SQLException, ParseException {
 
-		ParentPOJO parentPOJO = new ParentPOJO();
-		ContactPOJO contactPOJO = new ContactPOJO();
+//	ParentPOJO parentPOJO = new ParentPOJO();
+//		ContactPOJO contactPOJO = new ContactPOJO();
+//
+//		System.out.println("++++++++++ Welcome To Parent Registration Portal ++++++++++\n");
+//		System.out.println("++++++++++ Please Enter Details Of Parent++++++++++\n ");
+//		System.out.println("Enter The First Name: ");
+//		parentPOJO.setParentFirst_name(inputScanner.nextLine());
+//		System.out.println("Enter The Last Name: ");
+//		parentPOJO.setParentLast_name(inputScanner.nextLine());
+//		System.out.println("Enter The Street Name: ");
+//		contactPOJO.setStreet(inputScanner.nextLine());
+//		System.out.println("Enter The City: ");
+//		contactPOJO.setCity(inputScanner.nextLine());
+//		System.out.println("Enter The Pincode: ");
+//		contactPOJO.setPincode(Integer.parseInt(inputScanner.nextLine()));
+//		System.out.println("Enter The Email: ");
+//		String emailString = inputScanner.nextLine();
+//		EmailValidator email = new EmailValidator();
+//		boolean isEmail = (email.validate(emailString));
+//		if (isEmail == true) {
+//			contactPOJO.setEmail(emailString);
+//		} else
+//			System.out.println("Not Valid Email Id");
+//		System.out.println("Enter The Phone Number: ");
+//		contactPOJO.setPhoneNumber(inputScanner.nextLine());
+//		adminService.insertParentDetails(parentPOJO, contactPOJO);
+    	ParentPOJO parentPOJO = new ParentPOJO();
+
+		List<ContactPOJO> contact = new ArrayList<>();
 
 		System.out.println("++++++++++ Welcome To Parent Registration Portal ++++++++++\n");
 		System.out.println("++++++++++ Please Enter Details Of Parent++++++++++\n ");
@@ -138,36 +169,111 @@ public class AdminController {
 		parentPOJO.setParentFirst_name(inputScanner.nextLine());
 		System.out.println("Enter The Last Name: ");
 		parentPOJO.setParentLast_name(inputScanner.nextLine());
-		System.out.println("Enter The Street Name: ");
-		contactPOJO.setStreet(inputScanner.nextLine());
-		System.out.println("Enter The City: ");
-		contactPOJO.setCity(inputScanner.nextLine());
-		System.out.println("Enter The Pincode: ");
-		contactPOJO.setPincode(Integer.parseInt(inputScanner.nextLine()));
-		System.out.println("Enter The Email: ");
-		String emailString = inputScanner.nextLine();
-		EmailValidator email = new EmailValidator();
-		boolean isEmail = (email.validate(emailString));
-		if (isEmail == true) {
-			contactPOJO.setEmail(emailString);
-		} else
-			System.out.println("Not Valid Email Id");
-		System.out.println("Enter The Phone Number: ");
-		contactPOJO.setPhoneNumber(inputScanner.nextLine());
-		adminService.insertParentDetails(parentPOJO, contactPOJO);
+
+		// System.out.println("Enter The Street Name: ");
+		// contactPOJO.setStreet(inputScanner.nextLine());
+		// System.out.println("Enter The City: ");
+		// contactPOJO.setCity(inputScanner.nextLine());
+		// System.out.println("Enter The Pincode: ");
+		// contactPOJO.setPincode(Integer.parseInt(inputScanner.nextLine()));
+		// System.out.println("Enter The Email: ");
+		// String emailString = inputScanner.nextLine();
+
+		boolean nextContact = true;
+		do {// get multiple contacts if any
+			ContactPOJO contactPOJO = new ContactPOJO();
+			System.out.println("Enter The Street Name: ");
+			contactPOJO.setStreet(inputScanner.nextLine());
+			System.out.println("Enter The City: ");
+			contactPOJO.setCity(inputScanner.nextLine());
+			System.out.println("Enter The Pincode: ");
+			contactPOJO.setPincode(Integer.parseInt(inputScanner.nextLine()));
+			boolean emailflag = true;
+			do {
+				System.out.println("Enter The Email: ");
+				String emailString = inputScanner.nextLine();
+				EmailValidator email = new EmailValidator();
+				boolean isEmail = (email.validate(emailString));
+				if (isEmail == true) {
+					contactPOJO.setEmail(emailString);
+					emailflag = false;
+				} else {
+					System.out.println("Not Valid Email Id");
+					emailflag = true;
+				}
+			} while (emailflag);
+			System.out.println("Enter The Phone Number: ");
+			contactPOJO.setPhoneNumber(inputScanner.nextLine());
+			contact.add(contactPOJO);
+			System.out.println("Want To Provide secondary Contact (Y/N)");
+			String input = inputScanner.nextLine();
+			if (input.equals("Y") || input.equals("y")) {
+				nextContact = true;
+			} else {
+				nextContact = false;
+			}
+		} while (nextContact);
+		// add list of contacts to parent object
+		parentPOJO.setContact(contact);
+		boolean isparentinserted = adminService.insertParentDetails(parentPOJO);
+		if (isparentinserted) {
+			System.out.println("Parent Info Inserted Successfuly....!!");
+			this.AddChild(parentPOJO);
+		} else {
+			System.out.println("Parent Info NOT Inserted ");
+
+		}
 	}
 
-	private void AddChild() throws SQLException {
+	private void AddChild(ParentPOJO parentPOJO) throws SQLException, ParseException {
+//
+//		ChildPOJO childPOJO = new ChildPOJO();
+//		System.out.println("++++++++++ Please Enter Details Of Child ++++++++++\n ");
+//		System.out.println("Enter The First Name: ");
+//		childPOJO.setFirst_name(inputScanner.nextLine());
+//		System.out.println("Enter The Last Name: ");
+//		childPOJO.setLast_name(inputScanner.nextLine());
+//		System.out.println("Enter The Date Of Birth in format (yyyy-mm-dd): ");
+//		childPOJO.setDob(inputScanner.nextLine());
+//		adminService.insertChildDetails(childPOJO);
+		List<ChildPOJO> children = new ArrayList<>();
 
-		ChildPOJO childPOJO = new ChildPOJO();
-		System.out.println("++++++++++ Please Enter Details Of Child ++++++++++\n ");
-		System.out.println("Enter The First Name: ");
-		childPOJO.setFirst_name(inputScanner.nextLine());
-		System.out.println("Enter The Last Name: ");
-		childPOJO.setLast_name(inputScanner.nextLine());
-		System.out.println("Enter The Date Of Birth in format (yyyy-mm-dd): ");
-		childPOJO.setDob(inputScanner.nextLine());
-		adminService.insertChildDetails(childPOJO);
+		boolean nextchild = true;
+		do {// get multiple children if any
+			ChildPOJO child = new ChildPOJO();
+			System.out.println("++++++++++ Please Enter Details Of Child ++++++++++\n ");
+			System.out.println("Enter The First Name: ");
+			child.setFirst_name(inputScanner.nextLine());
+			System.out.println("Enter The Last Name: ");
+			child.setLast_name(inputScanner.nextLine());
+		
+			boolean dateflag = true;
+			do {
+				System.out.println("Enter The Date Of Birth in format (yyyy-mm-dd): ");
+				String date = inputScanner.nextLine();
+                 if (CdccmUtilities.isValidFormat(date)) {
+					child.setDob(date);
+					dateflag=false;
+				}
+			} while (dateflag);
+			System.out.println("Do you have second child (Y/N)");
+			String input = inputScanner.nextLine();
+
+			children.add(child);// add child to list of children of this parent
+			if (input.equals("Y") || input.equals("y")) {
+				nextchild = true;
+			} else {
+				nextchild = false;
+			}
+		} while (nextchild);
+		parentPOJO.setChild(children);// associate children to parent
+		boolean isChildInserted = adminService.insertChildDetails(parentPOJO);
+		if (isChildInserted) {
+			System.out.println("Child-parent-contact  Inserted Successfully");
+		} else {
+			System.out.println("No Record Inserted");
+
+		}
 
 	}
 
@@ -285,7 +391,8 @@ public class AdminController {
 					System.out.println("Enter The Message Body");
 					messageBody = inputScanner.nextLine();
 
-					EmailService emailService3 = new EmailService(emailid.trim(), messageHeadading, messageBody);
+					EmailService emailService3 = new EmailService();
+					System.out.println("HEad "+messageHeadading+"Body "+messageBody);
 					emailService3.sendSpecificMail(emailid, messageHeadading, messageBody);
 				} else {
 					System.out.println("**Invalid email Id**");

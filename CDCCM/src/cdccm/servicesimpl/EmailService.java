@@ -26,6 +26,10 @@ public class EmailService {
 	
 	}
 
+	public EmailService() {
+		
+	}
+
 	public void send(String whichmail) {
    
 		if (whichmail.equals("performance")) {
@@ -40,7 +44,7 @@ public class EmailService {
 	}
     public void sendSpecificMail(String emailid,String heading,String body)
     {
-    	MailSender mailsender = new MailSender(this.messageHeadading, body, emailid, null);
+    	MailSender mailsender = new MailSender(heading, body, emailid, null);
 		mailsender.sendMail();
     }
 	private void constructMail() {

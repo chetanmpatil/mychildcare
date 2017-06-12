@@ -87,13 +87,16 @@ public class MailSender {
 			multipart.addBodyPart(messageBodyPart);
 
 			// Part two is attachment
-			messageBodyPart = new MimeBodyPart();
+			
 		    if(filepath!=null){
+		    BodyPart attachmentpart = new MimeBodyPart();
+		   // messageBodyPart = new MimeBodyPart();
 			DataSource source = new FileDataSource(this.filepath);
-			messageBodyPart.setDataHandler(new DataHandler(source));
-			messageBodyPart.setFileName(this.filepath);
+			attachmentpart.setDataHandler(new DataHandler(source));
+			attachmentpart.setFileName(this.filepath);
+			multipart.addBodyPart(attachmentpart);
 		    }//multipart.addBodyPart(messageBodyPart);
-
+		    
 			// Send the complete message parts including,subject,body,attachment
 			message.setContent(multipart);
 

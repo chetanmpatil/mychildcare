@@ -24,7 +24,7 @@ public class MySQLDBConnector {
 		String dbName = "child_care";
 		String driver = "com.mysql.jdbc.Driver";
 		String userName = "root";// default user name
-		String password = "mysql";// default password
+		String password = "atcs";// default password
 
 		try {
 			Class.forName(driver).newInstance();
@@ -57,10 +57,8 @@ public class MySQLDBConnector {
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}finally
-		{
-			conn.close();
 		}
+
 		return parentnameplate;
 	}
 

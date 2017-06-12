@@ -10,15 +10,18 @@ import org.joda.time.Years;
 
 public class CdccmUtilities {
 	
-	public static int getAge(String dateOfBirth) {
+	public static int getAge(String dateOfBirth) throws ParseException {
 		//Returns the age by providing DOB.
-		String[] dayMonthYear = dateOfBirth.split("/");
-		
-		LocalDate birthdate = new LocalDate(Integer.parseInt(dayMonthYear[2]), Integer.parseInt(dayMonthYear[1]),
-				Integer.parseInt(dayMonthYear[0])); // Birth year,month,date
+
+		String[] dayMonthYear = dateOfBirth.split("-");
+		if(dayMonthYear[0]==null || dayMonthYear[1]==null || dayMonthYear[2]==null)
+		{
+			return -1;
+		}
+		LocalDate birthdate = new LocalDate(Integer.parseInt(dayMonthYear[0]), Integer.parseInt(dayMonthYear[1]),
+				Integer.parseInt(dayMonthYear[2])); // Birth year,month,date
 		LocalDate now = new LocalDate(); // Today's date
 		Years age = Years.yearsBetween(birthdate, now);
-
 		return age.getYears();
 	}
 	 public static boolean isValidFormat(String value) {

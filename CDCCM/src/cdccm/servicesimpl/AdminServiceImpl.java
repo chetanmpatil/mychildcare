@@ -3,10 +3,12 @@ package cdccm.servicesimpl;
 import java.io.File;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -40,40 +42,120 @@ public class AdminServiceImpl implements AdminService {
 	public AdminServiceImpl() {
 		dbConnector = MySQLDBConnector.getInstance();
 	}
-   @Override
-	public void insertChildDetails(ChildPOJO childPOJO) throws SQLException {
-		int age = CdccmUtilities.getAge(childPOJO.getDob());
+//   @Override
+//	public void insertChildDetails(ChildPOJO childPOJO) throws SQLException, ParseException {
+//		int age = CdccmUtilities.getAge(childPOJO.getDob());
+//
+//		// on the basis of age_calculartor utility we can decide age group, no
+//		// additional query to get fk_age_group
+//		int ageGroup = 2;
+//		int resultCountChild = dbConnector
+//				.insert("INSERT INTO CHILD_INFO(name,surname,dob,age,fk_age_group,fk_idparent) VALUES('"
+//						+ childPOJO.getFirst_name() + "','" + childPOJO.getLast_name() + "','" + childPOJO.getDob()
+//						+ "','" + age + "','" + ageGroup + "'," + "(SELECT MAX(IDPARENT) from PARENT)" + ")");
+//
+//		if (resultCountChild > 0)
+//			System.out.println("Child Record Inserted Successfully");
+//		else
+//			System.out.println("Error Inserting Record Please Try Again");
+//	}
+	@Override
+	public boolean insertChildDetails(ParentPOJO parentpojo) throws SQLException, ParseException {
+		/* take list of children added before */
+		List<ChildPOJO> children = parentpojo.getChild();
+		Iterator it = children.iterator();
+		while (it.hasNext()) {
+			ChildPOJO child = (ChildPOJO) it.next();
+			int age = CdccmUtilities.getAge(child.getDob());
+			if (age < 0) {
+				System.out.println("Wrong Date of birth");
+				/* wrong date has gone so remove parent */
+				boolean isalldeleted = this.clearTheReferencedData();
+				return false;
+			}
+			int ageGroup = CdccmUtilities.getAge(child.getDob());
+			int resultCountChild = dbConnector
+					.insert("INSERT INTO CHILD_INFO(name,surname,dob,age,fk_age_group,fk_idparent) VALUES('"
+							+ child.getFirst_name() + "','" + child.getLast_name() + "','" + child.getDob() + "','"
+							+ age + "','" + ageGroup + "'," + "(SELECT MAX(IDPARENT) from PARENT)" + ")");
 
-		// on the basis of age_calculartor utility we can decide age group, no
-		// additional query to get fk_age_group
-		int ageGroup = 2;
-		int resultCountChild = dbConnector
-				.insert("INSERT INTO CHILD_INFO(name,surname,dob,age,fk_age_group,fk_idparent) VALUES('"
-						+ childPOJO.getFirst_name() + "','" + childPOJO.getLast_name() + "','" + childPOJO.getDob()
-						+ "','" + age + "','" + ageGroup + "'," + "(SELECT MAX(IDPARENT) from PARENT)" + ")");
+			if (resultCountChild > 0)
+				System.out.println("Child Record Inserted Successfully");
+			else {// if child is not insereted then parent and his contact must
+					// be removed
+				boolean alldeleted = this.clearTheReferencedData();
+				if (alldeleted) {
+					return false;// means child insertion failed
+				} else
+					System.out.println("Can Not Clear referenced data from PARENT & CONTACT tables");
+			}
+		}
+		return true;// successful insertion
+	}
+	private boolean clearTheReferencedData() throws SQLException {
+		ResultSet resultset = dbConnector.query("SELECT MAX(idparent) from PARENT");
+		if (resultset.next()) {
+			int parent2delete = resultset.getInt(1);
+			int deltedrows = 0;
+			resultset = dbConnector.query("SELECT idchild from child_info where fk_idparent=" + parent2delete);
+			// delete the parent and contact only when no first child is already
+			// inserted
+			if (!resultset.next()) {// first child is not there so we can delete
+									// parent
+				System.out.println("parent to delete: " + parent2delete);
+				deltedrows = dbConnector.delete("DELETE FROM contact where fk_idparent=" + parent2delete);
 
-		if (resultCountChild > 0)
-			System.out.println("Child Record Inserted Successfully");
-		else
-			System.out.println("Error Inserting Record Please Try Again");
+				System.out.println("deleted contacts: " + deltedrows);
+				if (deltedrows > 0) {
+					deltedrows = 0;
+					System.out.println("Contacts Deleted...");
+					deltedrows = dbConnector.delete("DELETE FROM parent where idparent=" + parent2delete);
+					System.out.println("deleted parent: " + deltedrows);
+					if (deltedrows > 0) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 	}
 
-	public void insertParentDetails(ParentPOJO parentPOJO, ContactPOJO contactPOJO) throws SQLException {
-
+   public boolean insertParentDetails(ParentPOJO parentPOJO) throws SQLException {
+		List<ContactPOJO> contactpojo = parentPOJO.getContact();
+		int resultCountContact = 0;
 		int resultCountParent = dbConnector.insert("INSERT INTO PARENT(name, surname) VALUES('"
 				+ parentPOJO.getParentFirst_name() + "','" + parentPOJO.getParentLast_name() + "')");
-
-		int resultCountContact = dbConnector
-				.insert("INSERT INTO CONTACT(street,city,pincode,phone_number,emailid,fk_idparent) VALUES('"
-						+ contactPOJO.getStreet() + "','" + contactPOJO.getCity() + "','" + contactPOJO.getPincode()
-						+ "','" + contactPOJO.getPhoneNumber() + "','" + contactPOJO.getEmail() + "',"
-						+ "(SELECT MAX(IDPARENT) from PARENT)" + ")");
-
-		if ((resultCountParent > 0) && (resultCountContact > 0))
-			System.out.println("Parent Record Inserted Successfully");
-		else
-			System.out.println("Error Inserting Record Please Try Again");
+		Iterator it = contactpojo.iterator();
+		while (it.hasNext()) {
+			ContactPOJO contact = (ContactPOJO) it.next();
+			resultCountContact = dbConnector
+					.insert("INSERT INTO CONTACT(street,city,pincode,phone_number,emailid,fk_idparent) VALUES('"
+							+ contact.getStreet() + "','" + contact.getCity() + "','" + contact.getPincode() + "','"
+							+ contact.getPhoneNumber() + "','" + contact.getEmail() + "',"
+							+ "(SELECT MAX(IDPARENT) from PARENT)" + ")");
+		}
+		if ((resultCountParent > 0) && (resultCountContact > 0)) {
+			return true;
+		}
+		return false;
 	}
+
+//	public void insertParentDetails(ParentPOJO parentPOJO, ContactPOJO contactPOJO) throws SQLException {
+//
+//		int resultCountParent = dbConnector.insert("INSERT INTO PARENT(name, surname) VALUES('"
+//				+ parentPOJO.getParentFirst_name() + "','" + parentPOJO.getParentLast_name() + "')");
+//
+//		int resultCountContact = dbConnector
+//				.insert("INSERT INTO CONTACT(street,city,pincode,phone_number,emailid,fk_idparent) VALUES('"
+//						+ contactPOJO.getStreet() + "','" + contactPOJO.getCity() + "','" + contactPOJO.getPincode()
+//						+ "','" + contactPOJO.getPhoneNumber() + "','" + contactPOJO.getEmail() + "',"
+//						+ "(SELECT MAX(IDPARENT) from PARENT)" + ")");
+//
+//		if ((resultCountParent > 0) && (resultCountContact > 0))
+//			System.out.println("Parent Record Inserted Successfully");
+//		else
+//			System.out.println("Error Inserting Record Please Try Again");
+//	}
 
 	@Override
 	public ResultSet listAllChild() throws SQLException {
@@ -715,5 +797,6 @@ public class AdminServiceImpl implements AdminService {
 
 		return chid_ageid;
 	}
+	
 
 }
