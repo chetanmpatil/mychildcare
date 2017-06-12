@@ -7,16 +7,20 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Scanner;
 import java.util.Set;
 
 import ar.com.fdvs.dj.domain.builders.ColumnBuilderException;
 import cdccm.dbServices.MySQLDBConnector;
+import cdccm.pojo.AssignActivityPOJO;
 import cdccm.pojo.CareProviderPOJO;
 import cdccm.pojo.ChildIdAgeGroupId;
 import cdccm.pojo.ChildPOJO;
 import cdccm.pojo.ChildReportPOJO;
 import cdccm.pojo.ContactPOJO;
+import cdccm.pojo.FoodPOJO;
 import cdccm.pojo.ParentPOJO;
+import cdccm.pojo.ProviderFeedbackPOJO;
 import cdccm.pojo.SchedulePOJO;
 import cdccm.serviceApi.AdminService;
 import cdccm.utilities.CdccmUtilities;
@@ -32,7 +36,7 @@ import net.sf.jasperreports.view.JasperViewer;
 public class AdminServiceImpl implements AdminService {
 
 	private MySQLDBConnector dbConnector;
-
+	Scanner inputChoice = new Scanner(System.in);
 	public AdminServiceImpl() {
 		dbConnector = MySQLDBConnector.getInstance();
 	}
@@ -90,6 +94,67 @@ public class AdminServiceImpl implements AdminService {
 				System.out.println("Care Provider Record Inserted Successfully");
 			else
 				System.out.println("Error Inserting Record Please Try Again");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	@Override
+	public void updateActivityToChild(AssignActivityPOJO assignActivityPOJO) {
+		String updateQuery = "";
+		try {
+			ResultSet resultSet = dbConnector.query("select * from activity where fk_age_group ="
+					+ assignActivityPOJO.getAgeGroup() + " AND fk_session = " + assignActivityPOJO.getSession());
+			System.out.println("\n------------Activities and Care Provider Available For Your Child----------");
+			while (resultSet.next()) {
+				System.out.println("Activity ID: " + resultSet.getInt("idactivity"));
+				System.out.println("Activity Name: " + resultSet.getString("activity_name"));
+				System.out.println("Care Provider ID: " + resultSet.getInt("fk_idcareprovider"));
+				System.out.println("Date Of Birth: " + resultSet.getString("activity_description"));
+			}
+
+			System.out.println("\nSelect Activity ID available for your child");
+			assignActivityPOJO.setActivityID(inputChoice.nextInt());
+			System.out.println("\nSelect Care Provider ID available for your child");
+			assignActivityPOJO.setCareProviderID(inputChoice.nextInt());
+			updateQuery = "UPDATE REPORT SET fk_idactivity = " + assignActivityPOJO.getActivityID()
+					+ ", fk_idprovider= " + assignActivityPOJO.getCareProviderID() + " WHERE fk_idchild = "
+					+ assignActivityPOJO.getChildID() + " AND fk_idsession = " + assignActivityPOJO.getSession();
+			dbConnector.insert(updateQuery);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	@Override
+	public void assignActivityToChild(AssignActivityPOJO assignActivityPOJO) {
+
+		int recordInsert;
+		try {
+			ResultSet resultSet = dbConnector
+					.query("select idactivity,activity_name, fk_idcareprovider,activity_description from activity where fk_age_group ="
+							+ assignActivityPOJO.getAgeGroup() + " AND fk_session = "
+							+ assignActivityPOJO.getSession());
+			System.out.println("\n------------Activities and Care Provider Available For Child----------\n");
+			while (resultSet.next()) {
+				System.out.println("Activity ID: " + resultSet.getInt("idactivity"));
+				System.out.println("Activity Name: " + resultSet.getString("activity_name"));
+				System.out.println("Care Provider ID: " + resultSet.getInt("fk_idcareprovider"));
+				System.out.println("Date Of Birth: " + resultSet.getString("activity_description"));
+				System.out.println("");
+			}
+			System.out.println("\nSelect Activity ID available for your child");
+			assignActivityPOJO.setActivityID(inputChoice.nextInt());
+			System.out.println("\nSelect Care Provider ID available for your child");
+			assignActivityPOJO.setCareProviderID(inputChoice.nextInt());
+			recordInsert = dbConnector
+					.insert("Insert INTO REPORT (fk_idchild,fk_idagegroup,fk_idactivity,fk_idprovider,fk_idsession) VALUES('"
+							+ assignActivityPOJO.getSession() + "','" + assignActivityPOJO.getAgeGroup() + "','"
+							+ assignActivityPOJO.getActivityID() + "','" + assignActivityPOJO.getCareProviderID()
+							+ "','" + assignActivityPOJO.getSession() + "')");
+			if (recordInsert > 0) {
+				System.out.println("Record Inserted In Report Table\n");
+			} else {
+				System.out.println("Record Not Inserted\n");
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -219,8 +284,307 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public void assignActivitiesToChildren() throws SQLException {
-		// TODO Auto-generated method stub
+		int ageGroup, session;
+		String childId = "";
+		ResultSet chilIdList;
+		try {
+			for (ageGroup = 1; ageGroup <= 3; ageGroup++) {
+				chilIdList = dbConnector
+						.query("SELECT idchild,fk_age_group FROM CHILD_INFO where fk_age_group=" + ageGroup);
+				while (chilIdList.next()) {
+					if (ageGroup == 1) {
+						for (session = 1; session < 4; session++) {
+							childId = chilIdList.getString("IDCHILD");
+							dbConnector.insert("update report set fk_idsession = " + session + " where fk_idagegroup = "
+									+ ageGroup + " AND fk_idchild = " + chilIdList.getString("IDCHILD")
+									+ " AND fk_idsession = 0" + ";");
+							if (session == 1) {
+								dbConnector
+										.insert("update report set fk_idprovider = 1, fk_idactivity = 1 WHERE fk_idagegroup = "
+												+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = "
+												+ session + ";");
+							} else if (session == 2) {
+								dbConnector
+										.insert("update report set fk_idprovider = 3, fk_idactivity = 3 WHERE fk_idagegroup = "
+												+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = "
+												+ session + ";");
+							} else if (session == 3) {
+								dbConnector
+										.insert("update report set fk_idprovider = 5, fk_idactivity = 5 WHERE fk_idagegroup = "
+												+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = "
+												+ session + ";");
+							}
+						}
+					}
+					if (ageGroup == 2) {
+						for (session = 1; session <= 3; session++) {
+							childId = chilIdList.getString("IDCHILD");
+							dbConnector.insert("update report set fk_idsession = " + session + " where fk_idagegroup = "
+									+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = 0" + ";");
+							if (session == 1) {
+								dbConnector
+										.insert("update report set fk_idprovider = 2, fk_idactivity = 8 WHERE fk_idagegroup = "
+												+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = "
+												+ session + ";");
+							} else if (session == 2) {
+								dbConnector
+										.insert("update report set fk_idprovider = 4, fk_idactivity = 10 WHERE fk_idagegroup = "
+												+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = "
+												+ session + ";");
+							} else if (session == 3) {
+								dbConnector
+										.insert("update report set fk_idprovider = 6, fk_idactivity = 12 WHERE fk_idagegroup = "
+												+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = "
+												+ session + ";");
+							}
+						}
+					}
+					if (ageGroup == 3) {
+						for (session = 1; session <= 3; session++) {
+							childId = chilIdList.getString("IDCHILD");
+							dbConnector.insert("update report set fk_idsession = " + session + " where fk_idagegroup = "
+									+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = 0" + ";");
+							if (session == 1) {
+								dbConnector
+										.insert("update report set fk_idprovider = 2, fk_idactivity = 14 WHERE fk_idagegroup = "
+												+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = "
+												+ session + ";");
+							} else if (session == 2) {
+								dbConnector
+										.insert("update report set fk_idprovider = 4, fk_idactivity = 16 WHERE fk_idagegroup = "
+												+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = "
+												+ session + ";");
+							} else if (session == 3) {
+								dbConnector
+										.insert("update report set fk_idprovider = 6, fk_idactivity = 18 WHERE fk_idagegroup = "
+												+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = "
+												+ session + ";");
+							}
+						}
+					}
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 
+	}
+	@Override
+	public boolean displayChild(int id) {
+		ResultSet resultSetChild = null;
+		boolean recordExists = false;
+		try {
+			resultSetChild = dbConnector.query("SELECT * FROM CHILD_INFO WHERE IDCHILD = " + id);
+			if (resultSetChild.next()) {
+				System.out.println("Child ID: " + resultSetChild.getString("idchild"));
+				System.out.println("First Name: " + resultSetChild.getString("name"));
+				System.out.println("Last Name: " + resultSetChild.getString("surname"));
+				System.out.println("Date Of Birth: " + resultSetChild.getString("dob"));
+				System.out.println("Age:" + resultSetChild.getString("age"));
+				System.out.println("Age:" + resultSetChild.getString("fk_age_group"));
+				recordExists = true;
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return recordExists;
+	}
+	@Override
+	public boolean displayParent(int id) {
+
+		boolean recordExists = false;
+		try {
+			ResultSet resultSetParent = dbConnector.query("SELECT * FROM PARENT WHERE IDPARENT = " + id);
+
+			if (resultSetParent.next()) {
+				System.out.println("Parent First Name: " + resultSetParent.getString("name"));
+				System.out.println("Parent Last Name: " + resultSetParent.getString("surname"));
+				recordExists = true;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return recordExists;
+	}
+	@Override
+	public void updateParentInfo(int parentId, ParentPOJO parentPOJO) {
+		int resultUpdate = 0;
+		try {
+			String updateQuery = "UPDATE PARENT SET ";
+			updateQuery = updateQuery + "name = '" + parentPOJO.getParentFirst_name() + "', surname = '"
+					+ parentPOJO.getParentLast_name() + "' WHERE IDPARENT = " + parentId;
+			resultUpdate = dbConnector.insert(updateQuery);
+			if (resultUpdate > 0) {
+				System.out.println("Parent Record Updated!!\n");
+			} else
+				System.out.println("Error Occured, Record Not Updated");
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	public void updateContactInfo(int parentId, ContactPOJO contactPOJO) {
+		int resultUpdate = 0;
+		try {
+			String updateQuery = "UPDATE CONTACT SET ";
+			updateQuery = updateQuery + "street = '" + contactPOJO.getStreet() + "', city = '" + contactPOJO.getCity()
+					+ "', pincode = " + contactPOJO.getPincode() + ", phone_number = '" + contactPOJO.getPhoneNumber()
+					+ "', emailid = '" + contactPOJO.getEmail() + "'";
+			resultUpdate = dbConnector.insert(updateQuery);
+			if (resultUpdate > 0) {
+				System.out.println("Contact Updated!!\n");
+			} else
+				System.out.println("Error Occured, Record Not Updated");
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	@Override
+	public boolean displayContact(int id) {
+		boolean recordExists = false;
+		try {
+			ResultSet resultSetContact = dbConnector.query("SELECT * FROM CONTACT WHERE FK_IDPARENT = " + id);
+			if (resultSetContact.next()) {
+				System.out.println("Street Name: " + resultSetContact.getString("street"));
+				System.out.println("City Name: " + resultSetContact.getString("city"));
+				System.out.println("Pincode: " + resultSetContact.getString("pincode"));
+				System.out.println("Phone Number: " + resultSetContact.getString("phone_number"));
+				System.out.println("Email Id: " + resultSetContact.getString("emailid"));
+				recordExists = true;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return recordExists;
+	}
+	@Override
+	public void updateCareProviderInfo(int careProviderId, CareProviderPOJO careProviderPOJO) {
+		int resultUpdate = 0;
+		try {
+			String updateQuery = "UPDATE CARE_PROVIDER SET ";
+			updateQuery = updateQuery + "name = '" + careProviderPOJO.getName() + "' , emailid = '"
+					+ careProviderPOJO.getEmail() + "', phone_number = '" + careProviderPOJO.getPhoneNumber()
+					+ "' WHERE idcare_provider = " + careProviderId;
+			resultUpdate = dbConnector.insert(updateQuery);
+			if (resultUpdate > 0) {
+				System.out.println("Care Provider Record Updated!!\n");
+			} else
+				System.out.println("Error Occured, Record Not Updated");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	@Override
+	public boolean displayCareProvider(int id) {
+
+		boolean recordExists = false;
+		try {
+			ResultSet resultSetProvider = dbConnector
+					.query("SELECT * FROM CARE_PROVIDER WHERE IDCARE_PROVIDER = " + id);
+			if (resultSetProvider.next()) {
+				System.out.println("Care Provider ID: " + resultSetProvider.getString("idcare_provider"));
+				System.out.println("Name: " + resultSetProvider.getString("name"));
+				System.out.println("Email Id: " + resultSetProvider.getString("emailid"));
+				System.out.println("Phone number: " + resultSetProvider.getString("phone_number"));
+				recordExists = true;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return recordExists;
+	}
+	@Override
+	public void provideFeedback(ProviderFeedbackPOJO providerFeedbackPOJO) {
+		try {
+			int feedback = dbConnector
+					.insert("INSERT INTO FEEDBACK(FK_IDPARENT,FK_IDCARE_PROVIDER,PARENT_FEEDBACK) VALUES('"
+							+ providerFeedbackPOJO.getCareProviderId() + "','" + providerFeedbackPOJO.getParentId()
+							+ "','" + providerFeedbackPOJO.getFeedback() + "')");
+			if (feedback > 0) {
+				System.out.println("Suggestions/Feedback Added Succesfully!!\n");
+			} else {
+				System.out.println("Suggestion/Feedback Not Added\n");
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	@Override
+	public void insertMealDetails(FoodPOJO foodPOJO) {
+
+		int resultCountFood;
+		try {
+			resultCountFood = dbConnector.insert(
+					"INSERT INTO FOOD(day, breakfast, lunch,snak) VALUES('" + foodPOJO.getDay()
+							+ "','" + foodPOJO.getBreakfast()+ "','" + foodPOJO.getLunch() + "','" + foodPOJO.getSnack() + "')");
+			if ((resultCountFood > 0))
+				System.out.println("Food Record Inserted Successfully\n");
+			else
+				System.out.println("Error Inserting Record Please Try Again\n");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		
+	}
+	@Override
+	public void updateFood(FoodPOJO foodPOJO) {
+	int resultUpdate = 0;
+		
+		String column_to_set,query_aux;
+		
+		if(foodPOJO.getBreakfast()!=null){
+			column_to_set="breakfast";
+			query_aux=foodPOJO.getBreakfast();
+		}else if(foodPOJO.getLunch()!=null){
+			column_to_set="lunch";
+			query_aux=foodPOJO.getLunch();
+		}else{
+			query_aux=foodPOJO.getSnack();
+			column_to_set="snak";
+			}
+
+		String updateQuery = "UPDATE food SET " +column_to_set;
+		updateQuery = updateQuery  +" = '" + query_aux+ "' WHERE day = '" + foodPOJO.getDay()+"'";
+				
+		
+				
+		try {
+			resultUpdate = dbConnector.insert(updateQuery);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (resultUpdate > 0) {
+			System.out.println("Care Food Record Updated!!\n");
+		} else
+			System.out.println("Error Occured, Record Not Updated");
+
+		
+	}
+
+	@Override
+	public void deleteMealDay(FoodPOJO foodPOJO) {
+		int resultUpdate = 0;
+		String updateQuery = "DELETE FROM FOOD ";
+		updateQuery = updateQuery  + " WHERE day = '" + foodPOJO.getDay()+"'";
+		
+				
+		try {
+			resultUpdate = dbConnector.delete(updateQuery);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (resultUpdate > 0) {
+			System.out.println("Food Deleted correctly!!\n");
+		} else
+			System.out.println("Error Occured, Record Not Updated");
+
+		
 	}
 
 	@Override

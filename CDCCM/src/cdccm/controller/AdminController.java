@@ -4,10 +4,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Scanner;
 
+import cdccm.pojo.AssignActivityPOJO;
 import cdccm.pojo.CareProviderPOJO;
 import cdccm.pojo.ChildPOJO;
 import cdccm.pojo.ContactPOJO;
+import cdccm.pojo.FoodPOJO;
 import cdccm.pojo.ParentPOJO;
+import cdccm.pojo.ProviderFeedbackPOJO;
 import cdccm.serviceApi.AdminService;
 import cdccm.servicesimpl.AdminServiceImpl;
 import cdccm.servicesimpl.EmailService;
@@ -30,8 +33,8 @@ public class AdminController {
 		do {
 			System.out.println("User Logged In As Admin. \nNow Select An Operation To Perform");
 			System.out.println(
-					"1. Register A Child \n2. Register Care Provider \n3.Register Activity To All Children \n4.Register Activity For A Single Child \n5.Update Child, Prent or Care Provider Info \n6.List All Children   \n7. Generate Performance Report Of Child "
-							+ "\n8. Send News/Events/report To Parent \n9. Send Schedule Of Child   \n11. Main Menu.");
+					"1. Register A Child \n2. Register Care Provider \n3.Register Activity To All Children \n4.Register Activity For A Single Child \n5.Update Child, Prent or Care Provider Info \n6.List All Children \n7. Update Activity and Care Provider   \n8. Generate  Reports Of Child "
+							+ "\n9. Send News/Events/report To Parent \n10.Provide Feedback  Of Care Provider \n11.Maintain Meal Program \n12.Main Menu.");
 			int choice = 0;
 			choice = inputScanner.nextInt();
 			switch (choice) {
@@ -73,20 +76,22 @@ public class AdminController {
 				ShowAllChildren();
 				break;
 			case 7:
+				UpdateChildActivity();
+				break;
+			case 8:
 				GenerateReport();// chetan
 				System.out.println("Number taken");
 				break;
-			case 8:// chetan
+			case 9:// chetan
 				SendNewsEventsReports();
 				break;
-
-			case 9:
-				GenerateAndSendSchedule();
-				break;
 			case 10:
-
+				ProvideFeedback();
 				break;
 			case 11:
+				CreateFoodProgram();
+				break;
+			case 12:
 				choiceFlag = false;
 				break;
 			default:
@@ -97,7 +102,28 @@ public class AdminController {
 		} while (choiceFlag);
 	}
 
-	private void GenerateAndSendSchedule() {
+
+	private void UpdateChildActivity() {
+		AssignActivityPOJO assignActivityPOJO = new AssignActivityPOJO();
+		boolean moreEntry = true;
+
+		System.out.println("\nEnter Child ID To Update Activity ");
+		assignActivityPOJO.setChildID(inputScanner.nextInt());
+		System.out.println("Enter Child's AgeGroup");
+		assignActivityPOJO.setAgeGroup(inputScanner.nextInt());
+		do {
+			System.out.println(
+					"Select For Which Session You Want To Update (Select 1 For Morning 2 For Afternoon 3 For Evening)");
+			assignActivityPOJO.setSession(inputScanner.nextInt());
+			adminService.updateActivityToChild(assignActivityPOJO);
+
+			System.out.println("Do You Want To Update More Activity? Press Yes");
+			String choice = inputScanner.nextLine().toUpperCase();
+			if (choice.equals("YES")) {
+
+			} else
+				moreEntry = false;
+		} while (moreEntry);
 
 	}
 
@@ -106,8 +132,7 @@ public class AdminController {
 		ParentPOJO parentPOJO = new ParentPOJO();
 		ContactPOJO contactPOJO = new ContactPOJO();
 
-		System.out.println(
-				"++++++++++ Welcome To Parent Registration Portal, Please Enter Details Of Child ++++++++++\n");
+		System.out.println("++++++++++ Welcome To Parent Registration Portal ++++++++++\n");
 		System.out.println("++++++++++ Please Enter Details Of Parent++++++++++\n ");
 		System.out.println("Enter The First Name: ");
 		parentPOJO.setParentFirst_name(inputScanner.nextLine());
@@ -118,9 +143,15 @@ public class AdminController {
 		System.out.println("Enter The City: ");
 		contactPOJO.setCity(inputScanner.nextLine());
 		System.out.println("Enter The Pincode: ");
-		contactPOJO.setPincode(inputScanner.nextInt());
+		contactPOJO.setPincode(Integer.parseInt(inputScanner.nextLine()));
 		System.out.println("Enter The Email: ");
-		contactPOJO.setEmail(inputScanner.nextLine());
+		String emailString = inputScanner.nextLine();
+		EmailValidator email = new EmailValidator();
+		boolean isEmail = (email.validate(emailString));
+		if (isEmail == true) {
+			contactPOJO.setEmail(emailString);
+		} else
+			System.out.println("Not Valid Email Id");
 		System.out.println("Enter The Phone Number: ");
 		contactPOJO.setPhoneNumber(inputScanner.nextLine());
 		adminService.insertParentDetails(parentPOJO, contactPOJO);
@@ -129,7 +160,6 @@ public class AdminController {
 	private void AddChild() throws SQLException {
 
 		ChildPOJO childPOJO = new ChildPOJO();
-
 		System.out.println("++++++++++ Please Enter Details Of Child ++++++++++\n ");
 		System.out.println("Enter The First Name: ");
 		childPOJO.setFirst_name(inputScanner.nextLine());
@@ -144,42 +174,50 @@ public class AdminController {
 	private void AddCareProvider() {
 
 		CareProviderPOJO careProviderPOJO = new CareProviderPOJO();
-
 		System.out.println(
 				"++++++++++ Welcome To Care Provider Registration Portal, Please Enter Details Of Care Provider ++++++++++\n");
 		System.out.println("Enter The Complete Name: ");
 		careProviderPOJO.setName(inputScanner.nextLine());
 		System.out.println("Enter The Email: ");
-		careProviderPOJO.setEmail(inputScanner.nextLine());
+		String emailString = inputScanner.nextLine();
+		EmailValidator email = new EmailValidator();
+		boolean isEmail = (email.validate(emailString));
+		if (isEmail == true) {
+			careProviderPOJO.setEmail(emailString);
+		} else
+			System.out.println("Not Valid Email Id");
 		System.out.println("Enter The Phone Number: ");
 		careProviderPOJO.setPhoneNumber(inputScanner.nextLine());
 		adminService.insertCareProvider(careProviderPOJO);
 	}
 
 	private void ShowAllChildren() throws SQLException {
-		System.out.println("Here Is List Of All Children");
-		ResultSet childList = adminService.listAllChild();
-		int numberOfChild = 1;
+		try {
+			System.out.println("Here Is List Of All Children");
+			ResultSet childList = adminService.listAllChild();
+			int numberOfChild = 1;
 
-		while (childList.next()) {
-			System.out.println("Details of Child: " + numberOfChild);
-			System.out.println("First Name:" + childList.getString("name"));
-			System.out.println("Last Name:" + childList.getString("surname"));
-			System.out.println("Date Of Birth:" + childList.getString("dob"));
-			System.out.println("Age:" + childList.getString("age"));
-			numberOfChild++;
-			System.out.println("---------");
+			while (childList.next()) {
+				System.out.println("Details of Child: " + numberOfChild);
+				System.out.println("First Name:" + childList.getString("name"));
+				System.out.println("Last Name:" + childList.getString("surname"));
+				System.out.println("Date Of Birth:" + childList.getString("dob"));
+				System.out.println("Age:" + childList.getString("age"));
+				numberOfChild++;
+				System.out.println("---------");
+			}
+			System.out.printf("Above Is The List Of %d Children", numberOfChild);
+			System.out.println("");
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-		System.out.printf("Above Is The List Of %d Children", numberOfChild);
-		System.out.println("");
 	}
 
 	private void SendNewsEventsReports() {
 		boolean choiceFlag = true;
 		String messageHeadading = null;
 		String messageBody = null;
-		Scanner bodyscanner = null;
-		String date = null;
+	    String date = null;
 		int choice = 0;
 
 		System.out.println("-------------------------Welcome To Mailing Service-------------------");
@@ -262,8 +300,27 @@ public class AdminController {
 		} while (choiceFlag);
 	}
 
-	private void AddActivityToChild() {
+	private void AddActivityToChild() throws SQLException {
+		boolean moreEntry = true;
+		AssignActivityPOJO assignActivityPOJO = new AssignActivityPOJO();
+		System.out.println("Enter Child ID To Assign Activity and Care Provider");
+		assignActivityPOJO.setChildID(inputScanner.nextInt());
+		adminService.displayInfo(assignActivityPOJO.getChildID(), "CHILD_INFO");
+		System.out.println("Enter Child's AgeGroup");
+		assignActivityPOJO.setAgeGroup(inputScanner.nextInt());
+		do {
 
+			System.out.println("Enter The Session (For Morning 1, For Afternoon 2, For Evening 3)");
+			assignActivityPOJO.setSession(inputScanner.nextInt());
+			adminService.assignActivityToChild(assignActivityPOJO);
+
+			System.out.println("Do You Want To Assign more Activity? Press Yes");
+			String choice = inputScanner.nextLine().toUpperCase();
+			if (choice.equals("YES")) {
+
+			} else
+				moreEntry = false;
+		} while (moreEntry);
 	}
 
 	private void AddActivitiesToAllChildren() throws SQLException {
@@ -274,14 +331,15 @@ public class AdminController {
 	private void UpdateRegistrationInfo() throws SQLException {
 
 		boolean choiceFlag = true;
-		// String tableName="";
 		int choice = 0;
 		System.out.println("Welcome To Update Registration Information");
-		System.out.println(
-				"Now Select An Operation To Perform\n1. Update Child Information \n2. Update Parent Information \n3. Update Care Provider Information \n4. Exit Update Process ");
-		choice = Integer.parseInt(inputScanner.nextLine());
+
 		do {
+			System.out.println(
+					"\nNow Select An Operation To Perform\n1. Update Child Information \n2. Update Parent Information \n3. Update Care Provider Information \n4. Exit Update Process ");
+			choice = Integer.parseInt(inputScanner.nextLine());
 			switch (choice) {
+
 			case 1:
 				UpdateChildInfo();
 				break;
@@ -301,31 +359,82 @@ public class AdminController {
 	}
 
 	private void UpdateCareProviderInfo() throws SQLException {
+		CareProviderPOJO careProviderPOJO = new CareProviderPOJO();
 		System.out.println("Enter Care Provider ID To Update Data");
-		int id = inputScanner.nextInt();
+		int careProviderID = (Integer.parseInt(inputScanner.nextLine()));
+		boolean showProvider = adminService.displayCareProvider(careProviderID);
+		if (showProvider) {
+			System.out.println("Enter The Complete Name: ");
+			careProviderPOJO.setName(inputScanner.nextLine());
+			System.out.println("Enter The Email: ");
+			String emailString = inputScanner.nextLine();
+			EmailValidator email = new EmailValidator();
+			boolean isEmail = (email.validate(emailString));
+			if (isEmail == true) {
+				careProviderPOJO.setEmail(emailString);
+			} else
+				System.out.println("Not Valid Email Id");
+			System.out.println("Enter The Phone Number: ");
+			careProviderPOJO.setPhoneNumber(inputScanner.nextLine());
+			adminService.updateCareProviderInfo(careProviderID, careProviderPOJO);
+		} else {
+			System.out.println("No Record Found !!");
+		}
 
 	}
 
 	private void UpdateParentInfo() throws SQLException {
-		System.out.println("Enter Care Provider ID To Update Data");
-		int id = inputScanner.nextInt();
-		ResultSet result = adminService.displayInfo(id, "PARENT");
+		ParentPOJO parentPOJO = new ParentPOJO();
+		ContactPOJO contactPOJO = new ContactPOJO();
+		System.out.println("Enter Parent ID To Update Data");
+		int parentID = (Integer.parseInt(inputScanner.nextLine()));
+		boolean showParent = adminService.displayParent(parentID);
+		adminService.displayContact(parentID);
+		System.out.println("");
+		if (showParent) {
+			System.out.println("Enter The First Name: ");
+			parentPOJO.setParentFirst_name(inputScanner.nextLine());
+			System.out.println("Enter The Last Name: ");
+			parentPOJO.setParentLast_name(inputScanner.nextLine());
+			System.out.println("Enter The Street Name: ");
+			contactPOJO.setStreet(inputScanner.nextLine());
+			System.out.println("Enter The City: ");
+			contactPOJO.setCity(inputScanner.nextLine());
+			System.out.println("Enter The Pincode: ");
+			contactPOJO.setPincode(Integer.parseInt(inputScanner.nextLine()));
+			System.out.println("Enter The Phone Number: ");
+			contactPOJO.setPhoneNumber(inputScanner.nextLine());
+			System.out.println("Enter The Email: ");
+			String emailString = inputScanner.nextLine();
+			EmailValidator email = new EmailValidator();
+			boolean isEmail = (email.validate(emailString));
+			if (isEmail == true) {
+				contactPOJO.setEmail(emailString);
+			} else
+				System.out.println("Not Valid Email Id");
+			adminService.updateParentInfo(parentID, parentPOJO);
+			adminService.updateContactInfo(parentID, contactPOJO);
+		} else {
+			System.out.println("No Record Found !!");
+		}
 	}
 
 	private void UpdateChildInfo() throws SQLException {
 		System.out.println("Enter Child ID To Update Data");
-		int id = inputScanner.nextInt();
+		int id = (Integer.parseInt(inputScanner.nextLine()));
 		ChildPOJO childPOJO = new ChildPOJO();
-		ResultSet result = adminService.displayInfo(id, "CHILD_INFO");
-		// System.out.println("Details of Child: "+result);
-		System.out.println("++++++++++ To Update the Data Please Enter Details Of Child ++++++++++\n ");
-		System.out.println("Enter The First Name: ");
-		childPOJO.setFirst_name(inputScanner.nextLine());
-		System.out.println("Enter The Last Name: ");
-		childPOJO.setLast_name(inputScanner.nextLine());
-		System.out.println("Enter The Date Of Birth in format (yyyy-mm-dd): ");
-		childPOJO.setDob(inputScanner.nextLine());
-		adminService.updateChildInfo(id, childPOJO);
+		boolean showChild = adminService.displayChild(id);
+		if (showChild) {
+			System.out.println("++++++++++ To Update the Data Please Enter Details Of Child ++++++++++\n ");
+			System.out.println("Enter The First Name: ");
+			childPOJO.setFirst_name(inputScanner.nextLine());
+			System.out.println("Enter The Last Name: ");
+			childPOJO.setLast_name(inputScanner.nextLine());
+			System.out.println("Enter The Date Of Birth in format (yyyy-mm-dd): ");
+			childPOJO.setDob(inputScanner.nextLine());
+			adminService.updateChildInfo(id, childPOJO);
+		} else
+			System.out.println("No Record Found !!");
 	}
 
 	private void GenerateReport() {
@@ -362,8 +471,114 @@ public class AdminController {
 
 	}
 
-	private void GenerateSchedule() {
-		// TODO Auto-generated method stub
+	private void ProvideFeedback() {
+
+		ProviderFeedbackPOJO providerFeedbackPOJO = new ProviderFeedbackPOJO();
+		System.out.println("Enter Parent ID");
+		providerFeedbackPOJO.setParentId(Integer.parseInt(inputScanner.nextLine()));
+		System.out.println("Enter Care Provider ID To Add Feedback/Suggestions");
+		providerFeedbackPOJO.setCareProviderId(Integer.parseInt(inputScanner.nextLine()));
+		boolean careProviderExists = adminService.displayCareProvider(providerFeedbackPOJO.getCareProviderId());
+		if (careProviderExists) {
+			System.out.println("Please Enter Feedback/Suggestions For Care Provider");
+			providerFeedbackPOJO.setFeedback(inputScanner.nextLine());
+			adminService.provideFeedback(providerFeedbackPOJO);
+		} else {
+			System.out.println("No Record Found !!");
+		}
+
+	}
+
+	private void CreateFoodProgram() {
+		FoodPOJO FoodPOJO = new FoodPOJO();
+
+		System.out.println("++++++++++ Welcome To Meal Program Registration Portal ++++++++++\n");
+		System.out.println("++++++++++ Please Enter Details for the Meals for all the week  ++++++++++\n ");
+
+		System.out.println("Please Select An Operation To Perform");
+		System.out.println("1. Create Meal Program \n2. Update Meal Program \n3. Delete Meal Pogram for day ");
+		int operation = 0;
+		operation = Integer.parseInt(inputScanner.nextLine());
+		switch (operation) {
+		case 1:
+
+			boolean moreEntry = true;
+			do {
+				System.out.println(
+						"Enter The day to complete the Meal program: Select Please   Mon / Tue / Wed / Thu / Fri ");
+				FoodPOJO.setDay(inputScanner.nextLine());
+				System.out.println("Enter The Breakfast for " + FoodPOJO.getDay());
+
+				FoodPOJO.setBreakfast(inputScanner.nextLine());
+				System.out.println("Enter The Lunch for " + FoodPOJO.getDay());
+				FoodPOJO.setLunch(inputScanner.nextLine());
+				System.out.println("Enter The Snack for " + FoodPOJO.getDay());
+				FoodPOJO.setSnack(inputScanner.nextLine());
+				adminService.insertMealDetails(FoodPOJO);
+				System.out.println("Do You Want To Create More Meals? Press Yes");
+				String choice1 = inputScanner.nextLine().toUpperCase();
+				if (choice1.equals("YES")) {
+
+				} else
+					moreEntry = false;
+
+			} while (moreEntry);
+			break;
+
+		// update
+		case 2:
+			int option;
+			moreEntry = true;
+			do {
+
+				System.out.println("\nEnter Day To Update Meal ");
+				FoodPOJO.setDay(inputScanner.nextLine());
+				System.out.println("Enter which Meal will be updated : 1.  Breakfast / 2. Lunch / 3. Snak");
+				option = Integer.parseInt(inputScanner.nextLine());
+
+				if (option == 1) {
+					System.out.println("Enter the new BreakFast for " + FoodPOJO.getDay());
+					FoodPOJO.setBreakfast(inputScanner.nextLine());
+				} else if (option == 2) {
+					System.out.println("Enter the new Lunch for " + FoodPOJO.getDay());
+					FoodPOJO.setLunch(inputScanner.nextLine());
+				} else {
+					System.out.println("Enter the new Meal for " + FoodPOJO.getDay());
+					FoodPOJO.setSnack(inputScanner.nextLine());
+				}
+
+				adminService.updateFood(FoodPOJO);
+
+				System.out.println("Do You Want To Update More Meals? Press Yes");
+				String choice1 = inputScanner.nextLine().toUpperCase();
+				if (choice1.equals("YES")) {
+
+				} else
+					moreEntry = false;
+			} while (moreEntry);
+
+			break;
+
+		case 3:
+			moreEntry = true;
+			do {
+				System.out.println(
+						"Enter The day to delete from the Meal program: Select Please   Mon / Tue / Wed / Thu / Fri ");
+				FoodPOJO.setDay(inputScanner.nextLine());
+				adminService.deleteMealDay(FoodPOJO);
+
+				System.out.println("Do You Want To Delete More Meals? Press Yes");
+				String choice1 = inputScanner.nextLine().toUpperCase();
+				if (choice1.equals("YES")) {
+
+				} else
+					moreEntry = false;
+			} while (moreEntry);
+
+		default:
+			System.out.println("OOPS, You Have Entered Wrong Choice!!\n Please Try Again!!");
+			break;
+		}
 
 	}
 
