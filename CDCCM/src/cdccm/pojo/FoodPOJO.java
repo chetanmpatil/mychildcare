@@ -1,13 +1,34 @@
 package cdccm.pojo;
 
 public class FoodPOJO {
-
+    private int day;
 	private String lunch;
 	private String breakfast;
 	private String snack;
-	private String day;
 	
 	
+	
+	public FoodPOJO(String lunch, String breakfast, String snack) {
+		this.lunch=lunch;
+		this.breakfast=breakfast;
+		this.snack=snack;
+	}
+	public FoodPOJO(int day, String lunch, String breakfast, String snack) {
+		super();
+		this.day = day;
+		this.lunch = lunch;
+		this.breakfast = breakfast;
+		this.snack = snack;
+	}
+	public int getDay() {
+		return day;
+	}
+	public void setDay(int day) {
+		this.day = day;
+	}
+	public FoodPOJO() {
+		// TODO Auto-generated constructor stub
+	}
 	public String getLunch() {
 		return lunch;
 	}
@@ -25,12 +46,6 @@ public class FoodPOJO {
 	}
 	public void setSnack(String snack) {
 		this.snack = snack;
-	}
-	public String getDay() {
-		return day;
-	}
-	public void setDay(String day) {
-		this.day = day;
 	}
 	
 }

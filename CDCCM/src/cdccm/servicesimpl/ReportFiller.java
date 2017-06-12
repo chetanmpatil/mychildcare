@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 
 import ar.com.fdvs.dj.core.DynamicJasperHelper;
 import ar.com.fdvs.dj.core.layout.ClassicLayoutManager;
@@ -16,6 +17,7 @@ import ar.com.fdvs.dj.domain.Style;
 import ar.com.fdvs.dj.domain.builders.ColumnBuilder;
 import ar.com.fdvs.dj.domain.builders.ColumnBuilderException;
 import ar.com.fdvs.dj.domain.builders.DynamicReportBuilder;
+import ar.com.fdvs.dj.domain.builders.FastReportBuilder;
 import ar.com.fdvs.dj.domain.builders.StyleBuilder;
 import ar.com.fdvs.dj.domain.constants.Border;
 import ar.com.fdvs.dj.domain.constants.Font;
@@ -24,10 +26,13 @@ import ar.com.fdvs.dj.domain.constants.Transparency;
 import ar.com.fdvs.dj.domain.constants.VerticalAlign;
 import ar.com.fdvs.dj.domain.entities.columns.AbstractColumn;
 import cdccm.dbServices.MySQLDBConnector;
+import cdccm.pojo.ActivityPOJO;
 import cdccm.pojo.ChildNamePlate;
 import cdccm.pojo.ChildReportPOJO;
+import cdccm.pojo.FoodPOJO;
 import cdccm.pojo.SchedulePOJO;
 import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JRPrintPage;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 
@@ -35,7 +40,7 @@ public class ReportFiller {
 	private Collection<ChildReportPOJO> reportlist = new ArrayList<>();
 	private final Collection<SchedulePOJO> schedulelist = new ArrayList<>();
 	private MySQLDBConnector dbConnector;
-
+    AdminServiceImpl adminservice=null;
 	public ReportFiller(Collection<? extends Object> listOfObjectsforReport) {
 		dbConnector = MySQLDBConnector.getInstance();
 		for (Object obj : listOfObjectsforReport) {
@@ -47,33 +52,152 @@ public class ReportFiller {
 				break;
 			} else if (obj.getClass().getName().equals("cdccm.pojo.SchedulePOJO")) {
 				schedulelist.addAll((Collection<? extends SchedulePOJO>) listOfObjectsforReport);
+				adminservice=new AdminServiceImpl();
 				break;
 			}
 		}
 	}
 
 	public JasperPrint getReport(String typeofreport, int childid)
-			throws ColumnBuilderException, JRException, ClassNotFoundException {
+			throws ColumnBuilderException, JRException, ClassNotFoundException, SQLException {
+		
+		List<FoodPOJO> listOfFood = new ArrayList<>();
+		List<ActivityPOJO> activityDescList = new ArrayList<>();
+		
 		JasperPrint jp = null;
+		JasperPrint jp1 = null;
+		JasperPrint jp2 = null;
 		Style headerStyle = createHeaderStyle();// style setup
 		Style detailTextStyle = createDetailTextStyle();
 		Style detailNumberStyle = createDetailNumberStyle();
 		/* check whether report request is for schedule or performance */
 		if (typeofreport.equals("performancereport")) {
 			/* make call for performance report skeleton creation */
-			DynamicReport dynaReport = getPerformanceReport(headerStyle, detailTextStyle, detailNumberStyle);
+			DynamicReport dynaPerformanceReport = getPerformanceReport(headerStyle, detailTextStyle, detailNumberStyle);
 			/* fill the empty skeleton */
-			jp = DynamicJasperHelper.generateJasperPrint(dynaReport, new ClassicLayoutManager(),
+			jp = DynamicJasperHelper.generateJasperPrint(dynaPerformanceReport, new ClassicLayoutManager(),
 					new JRBeanCollectionDataSource(reportlist));
-		} else if (typeofreport.equals("schedulereport")) {
+		} 
+		else if (typeofreport.equals("schedulereport")) {
+			
 			System.out.println("cdccm.pojo.SchedulePOJO");
-			/* make call for performance report skeleton creation */
-			DynamicReport dynaReport = getScheduleReport(headerStyle, detailTextStyle, detailNumberStyle, childid);
+			/* make call for getScheduleReport report skeleton creation */
+			DynamicReport dynaScheduleReport = getScheduleReport(headerStyle, detailTextStyle, detailNumberStyle, childid);
 			/* fill the empty skeleton */
-			jp = DynamicJasperHelper.generateJasperPrint(dynaReport, new ClassicLayoutManager(),
+			jp = DynamicJasperHelper.generateJasperPrint(dynaScheduleReport, new ClassicLayoutManager(),
 					new JRBeanCollectionDataSource(schedulelist));
+			
+			
+			/* access adminservice to get  ActivityDescription*/
+			activityDescList=this.adminservice.getActivityDescription(childid);
+			/* make call to getActivityDescReport report skeleton creation */
+			DynamicReport dynaActivityDescReport = getActivityDescReport(headerStyle, detailTextStyle, detailNumberStyle, childid);
+			/* fill the empty skeleton */
+			jp1 = DynamicJasperHelper.generateJasperPrint(dynaActivityDescReport, new ClassicLayoutManager(),
+					new JRBeanCollectionDataSource(activityDescList));
+			
+			/* access adminservice to get  extractfood()*/
+			listOfFood = this.adminservice.extractfood();
+			/* make call for getFoodReport report skeleton creation */
+			DynamicReport dynaFoodReport = getFoodReport(headerStyle, detailTextStyle, detailNumberStyle, childid);
+			/* fill the empty skeleton */
+			jp2 = DynamicJasperHelper.generateJasperPrint(dynaFoodReport, new ClassicLayoutManager(),
+					new JRBeanCollectionDataSource(listOfFood));
+			
+			List foodpages = jp2 .getPages();
+			for (int j = 0; j < foodpages.size(); j++) {
+			    JRPrintPage object = (JRPrintPage)foodpages.get(j);
+			    jp1.addPage(object);
+			    }
+			List activityAndFoodPages = jp1 .getPages();
+			for (int j = 0; j < activityAndFoodPages.size(); j++) {
+			    JRPrintPage object = (JRPrintPage)activityAndFoodPages.get(j);
+			    jp.addPage(object);
+			    }
 		}
 		return jp;
+	}
+    
+	/*create report for food*/
+	private DynamicReport getActivityDescReport(Style headerStyle, Style detailTextStyle, Style detailNumberStyle,
+			int childid) {
+		DynamicReport foodreport =null;
+		FastReportBuilder rb = new FastReportBuilder();
+        
+		AbstractColumn activityName = createColumn("name", String.class, "Activity Name", 40, headerStyle, detailTextStyle);// creates
+        AbstractColumn activityDescription = createColumn("description", String.class, "Activity Description", 100, headerStyle, detailTextStyle);
+		
+        rb.addColumn(activityName).addColumn(activityDescription);
+
+		StyleBuilder titleStyle = new StyleBuilder(true);
+		titleStyle.setHorizontalAlign(HorizontalAlign.CENTER);
+		titleStyle.setFont(Font.COMIC_SANS_BIG);
+
+		StyleBuilder subTitleStyle1 = new StyleBuilder(true);
+		subTitleStyle1.setHorizontalAlign(HorizontalAlign.JUSTIFY);
+		subTitleStyle1.setFont(Font.COMIC_SANS_BIG);
+
+		StyleBuilder subTitleStyle2 = new StyleBuilder(true);
+		subTitleStyle2.setHorizontalAlign(HorizontalAlign.JUSTIFY);
+		subTitleStyle2.setFont(Font.COMIC_SANS_BIG);
+
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		String date = dateFormat.format(new Date());
+		rb.setTitle("Activity Related Information:(" + date + ")");
+		rb.setTitleStyle(titleStyle.build()).setDefaultStyles(headerStyle, headerStyle, headerStyle, detailTextStyle);;
+
+//		report.setSubtitle("Roll No: " + childid + ". Name: " + childnameplate.getChild_first_name() + ". Surname: "
+//				+ childnameplate.getChild_last_name() + ". DOB: " + childnameplate.getDate_of_birth() + ". Group: "
+//				+ childnameplate.getAge_group())
+//				.setDefaultStyles(headerStyle, headerStyle, headerStyle, detailTextStyle);
+//		report.setSubtitleHeight(40);
+//		report.setSubtitleStyle(subTitleStyle1.build());
+		rb.setUseFullPageWidth(true);
+		System.out.println("getActivityDescReport " + childid);
+		foodreport=rb.build();
+		return foodreport;
+		
+	}
+	/*create report for Activity and Description*/
+	private DynamicReport getFoodReport(Style headerStyle, Style detailTextStyle, Style detailNumberStyle,
+			int childid) {
+		DynamicReport foodreport =null;
+		FastReportBuilder rb = new FastReportBuilder();
+		AbstractColumn day = createColumn("day", Integer.class, "Day of the Week",50, headerStyle, detailTextStyle);
+		AbstractColumn breakfast = createColumn("breakfast", String.class, "BREAKFAST",50, headerStyle, detailTextStyle);// creates
+	    AbstractColumn lunch = createColumn("lunch", String.class, "LUNCH", 50, headerStyle, detailTextStyle);
+		AbstractColumn snacks = createColumn("snack", String.class, "SNACKS", 50, headerStyle, detailTextStyle);
+		
+		rb.addColumn(day).addColumn(breakfast).addColumn(lunch).addColumn(snacks);
+
+		StyleBuilder titleStyle = new StyleBuilder(true);
+		titleStyle.setHorizontalAlign(HorizontalAlign.CENTER);
+		titleStyle.setFont(Font.COMIC_SANS_BIG);
+
+		StyleBuilder subTitleStyle1 = new StyleBuilder(true);
+		subTitleStyle1.setHorizontalAlign(HorizontalAlign.JUSTIFY);
+		subTitleStyle1.setFont(Font.COMIC_SANS_BIG);
+
+		StyleBuilder subTitleStyle2 = new StyleBuilder(true);
+		subTitleStyle2.setHorizontalAlign(HorizontalAlign.JUSTIFY);
+		subTitleStyle2.setFont(Font.COMIC_SANS_BIG);
+
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		String date = dateFormat.format(new Date());
+		rb.setTitle("CHILD FOOD PLAN OF THE WEEK,  Date:(" + date + ")");
+		rb.setTitleStyle(titleStyle.build());
+		rb.setTitleStyle(titleStyle.build()).setDefaultStyles(headerStyle, headerStyle, headerStyle, detailTextStyle);
+
+//		report.setSubtitle("Roll No: " + childid + ". Name: " + childnameplate.getChild_first_name() + ". Surname: "
+//				+ childnameplate.getChild_last_name() + ". DOB: " + childnameplate.getDate_of_birth() + ". Group: "
+//				+ childnameplate.getAge_group())
+//				.setDefaultStyles(headerStyle, headerStyle, headerStyle, detailTextStyle);
+//		report.setSubtitleHeight(40);
+//		report.setSubtitleStyle(subTitleStyle1.build());
+		rb.setUseFullPageWidth(true);
+		System.out.println("activitysubreport" + childid);
+		foodreport=rb.build();;
+		return foodreport;
 	}
 
 	private DynamicReport getScheduleReport(Style headerStyle, Style detailTextStyle, Style detailNumberStyle,
@@ -102,7 +226,7 @@ public class ReportFiller {
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		String date = dateFormat.format(new Date());
-		report.setTitle("Child Plan of the week,  Date:" + date + ")");
+		report.setTitle("Child Plan of the week,  Date:(" + date + ")");
 		report.setTitleStyle(titleStyle.build());
 
 		report.setSubtitle("Roll No: " + childid + ". Name: " + childnameplate.getChild_first_name() + ". Surname: "
@@ -200,24 +324,9 @@ public class ReportFiller {
 		AbstractColumn providername = createColumn("providername", String.class, "Provider Name", 50, headerStyle,
 				detailTextStyle);
 		AbstractColumn feedback = createColumn("feedback", String.class, "feedback", 100, headerStyle, detailTextStyle);
-		// AbstractColumn mon = createColumn("mon", Integer.class, "MON", 20,
-		// headerStyle, detailNumStyle);
-		// AbstractColumn tue = createColumn("tue", Integer.class, "TUE", 20,
-		// headerStyle, detailNumStyle);
-		// AbstractColumn wen = createColumn("wen", Integer.class, "WEN", 20,
-		// headerStyle, detailNumStyle);
-		// AbstractColumn thu = createColumn("thu", Integer.class, "THU", 20,
-		// headerStyle, detailNumStyle);
-		// AbstractColumn fri = createColumn("fri", Integer.class, "FRI", 20,
-		// headerStyle, detailNumStyle);
-		// AbstractColumn total = createColumn("total", Integer.class, "Total",
-		// 20, headerStyle, detailNumStyle);
-		// AbstractColumn percent = createColumn("percentage", Float.class,
-		// "Percentage", 20, headerStyle, detailNumStyle);
-
+	
 		report.addColumn(activityName).addColumn(sessionname).addColumn(providername).addColumn(feedback);
-		// addColumn(mon).addColumn(tue).addColumn(wen)
-		// .addColumn(thu).addColumn(fri).addColumn(total).addColumn(percent);
+	
 
 		StyleBuilder titleStyle = new StyleBuilder(true);
 		titleStyle.setHorizontalAlign(HorizontalAlign.CENTER);

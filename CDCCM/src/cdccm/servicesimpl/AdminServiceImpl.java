@@ -14,6 +14,7 @@ import java.util.Set;
 
 import ar.com.fdvs.dj.domain.builders.ColumnBuilderException;
 import cdccm.dbServices.MySQLDBConnector;
+import cdccm.pojo.ActivityPOJO;
 import cdccm.pojo.AssignActivityPOJO;
 import cdccm.pojo.CareProviderPOJO;
 import cdccm.pojo.ChildIdAgeGroupId;
@@ -39,26 +40,32 @@ public class AdminServiceImpl implements AdminService {
 
 	private MySQLDBConnector dbConnector;
 	Scanner inputChoice = new Scanner(System.in);
+
 	public AdminServiceImpl() {
 		dbConnector = MySQLDBConnector.getInstance();
 	}
-//   @Override
-//	public void insertChildDetails(ChildPOJO childPOJO) throws SQLException, ParseException {
-//		int age = CdccmUtilities.getAge(childPOJO.getDob());
-//
-//		// on the basis of age_calculartor utility we can decide age group, no
-//		// additional query to get fk_age_group
-//		int ageGroup = 2;
-//		int resultCountChild = dbConnector
-//				.insert("INSERT INTO CHILD_INFO(name,surname,dob,age,fk_age_group,fk_idparent) VALUES('"
-//						+ childPOJO.getFirst_name() + "','" + childPOJO.getLast_name() + "','" + childPOJO.getDob()
-//						+ "','" + age + "','" + ageGroup + "'," + "(SELECT MAX(IDPARENT) from PARENT)" + ")");
-//
-//		if (resultCountChild > 0)
-//			System.out.println("Child Record Inserted Successfully");
-//		else
-//			System.out.println("Error Inserting Record Please Try Again");
-//	}
+
+	// @Override
+	// public void insertChildDetails(ChildPOJO childPOJO) throws SQLException,
+	// ParseException {
+	// int age = CdccmUtilities.getAge(childPOJO.getDob());
+	//
+	// // on the basis of age_calculartor utility we can decide age group, no
+	// // additional query to get fk_age_group
+	// int ageGroup = 2;
+	// int resultCountChild = dbConnector
+	// .insert("INSERT INTO
+	// CHILD_INFO(name,surname,dob,age,fk_age_group,fk_idparent) VALUES('"
+	// + childPOJO.getFirst_name() + "','" + childPOJO.getLast_name() + "','" +
+	// childPOJO.getDob()
+	// + "','" + age + "','" + ageGroup + "'," + "(SELECT MAX(IDPARENT) from
+	// PARENT)" + ")");
+	//
+	// if (resultCountChild > 0)
+	// System.out.println("Child Record Inserted Successfully");
+	// else
+	// System.out.println("Error Inserting Record Please Try Again");
+	// }
 	@Override
 	public boolean insertChildDetails(ParentPOJO parentpojo) throws SQLException, ParseException {
 		/* take list of children added before */
@@ -92,6 +99,7 @@ public class AdminServiceImpl implements AdminService {
 		}
 		return true;// successful insertion
 	}
+
 	private boolean clearTheReferencedData() throws SQLException {
 		ResultSet resultset = dbConnector.query("SELECT MAX(idparent) from PARENT");
 		if (resultset.next()) {
@@ -120,7 +128,7 @@ public class AdminServiceImpl implements AdminService {
 		return false;
 	}
 
-   public boolean insertParentDetails(ParentPOJO parentPOJO) throws SQLException {
+	public boolean insertParentDetails(ParentPOJO parentPOJO) throws SQLException {
 		List<ContactPOJO> contactpojo = parentPOJO.getContact();
 		int resultCountContact = 0;
 		int resultCountParent = dbConnector.insert("INSERT INTO PARENT(name, surname) VALUES('"
@@ -140,22 +148,28 @@ public class AdminServiceImpl implements AdminService {
 		return false;
 	}
 
-//	public void insertParentDetails(ParentPOJO parentPOJO, ContactPOJO contactPOJO) throws SQLException {
-//
-//		int resultCountParent = dbConnector.insert("INSERT INTO PARENT(name, surname) VALUES('"
-//				+ parentPOJO.getParentFirst_name() + "','" + parentPOJO.getParentLast_name() + "')");
-//
-//		int resultCountContact = dbConnector
-//				.insert("INSERT INTO CONTACT(street,city,pincode,phone_number,emailid,fk_idparent) VALUES('"
-//						+ contactPOJO.getStreet() + "','" + contactPOJO.getCity() + "','" + contactPOJO.getPincode()
-//						+ "','" + contactPOJO.getPhoneNumber() + "','" + contactPOJO.getEmail() + "',"
-//						+ "(SELECT MAX(IDPARENT) from PARENT)" + ")");
-//
-//		if ((resultCountParent > 0) && (resultCountContact > 0))
-//			System.out.println("Parent Record Inserted Successfully");
-//		else
-//			System.out.println("Error Inserting Record Please Try Again");
-//	}
+	// public void insertParentDetails(ParentPOJO parentPOJO, ContactPOJO
+	// contactPOJO) throws SQLException {
+	//
+	// int resultCountParent = dbConnector.insert("INSERT INTO PARENT(name,
+	// surname) VALUES('"
+	// + parentPOJO.getParentFirst_name() + "','" +
+	// parentPOJO.getParentLast_name() + "')");
+	//
+	// int resultCountContact = dbConnector
+	// .insert("INSERT INTO
+	// CONTACT(street,city,pincode,phone_number,emailid,fk_idparent) VALUES('"
+	// + contactPOJO.getStreet() + "','" + contactPOJO.getCity() + "','" +
+	// contactPOJO.getPincode()
+	// + "','" + contactPOJO.getPhoneNumber() + "','" + contactPOJO.getEmail() +
+	// "',"
+	// + "(SELECT MAX(IDPARENT) from PARENT)" + ")");
+	//
+	// if ((resultCountParent > 0) && (resultCountContact > 0))
+	// System.out.println("Parent Record Inserted Successfully");
+	// else
+	// System.out.println("Error Inserting Record Please Try Again");
+	// }
 
 	@Override
 	public ResultSet listAllChild() throws SQLException {
@@ -180,6 +194,7 @@ public class AdminServiceImpl implements AdminService {
 			e.printStackTrace();
 		}
 	}
+
 	@Override
 	public void updateActivityToChild(AssignActivityPOJO assignActivityPOJO) {
 		String updateQuery = "";
@@ -206,6 +221,7 @@ public class AdminServiceImpl implements AdminService {
 			e.printStackTrace();
 		}
 	}
+
 	@Override
 	public void assignActivityToChild(AssignActivityPOJO assignActivityPOJO) {
 
@@ -261,29 +277,42 @@ public class AdminServiceImpl implements AdminService {
 	}
 
 	@Override
-	public void generateReport(int childid) {
+	public void generateReport(int childid) throws SQLException {
 		Collection<ChildReportPOJO> listofscore = new ArrayList<>();
 		System.out.println("gerenating report for Child " + childid);
 		ResultSet childresult;
-//		String sql = "select ci.idchild,ci.name,ci.surname,ci.dob, ag.name as ageGroup,a.activity_name,ds.session_name as sessionName,"
-//				+ "ifnull(r.MON,0) as MON,ifnull(r.TUE,0) as TUE,ifnull(r.WEN,0)as WEN,ifnull(r.THU,0) as THU,ifnull(r.FRI,0) as FRI,"
-//				+ "(ifnull(r.MON,0)+ifnull(r.TUE,0)+ifnull(r.WEN,0)+ifnull(r.THU,0)+ifnull(r.FRI,0)) as total,"
-//				+ "cast(((ifnull(r.MON,0)+ifnull(r.TUE,0)+ifnull(r.WEN,0)+ifnull(r.THU,0)+ifnull(r.FRI,0))*100/500) as decimal(5,2)) as Percentage1"
-//				+ " from report r join child_info ci join day_session ds join age_group ag join activity a on(r.fk_idchild=ci.idchild and r.fk_idsession=ds.idsession and ci.fk_age_group=ag.idage_group and r.fk_idactivity=a.idactivity) "
-//				+ "where r.fk_idchild=? " + "group by ci.idchild,ds.session_name;";
+		// String sql = "select ci.idchild,ci.name,ci.surname,ci.dob, ag.name as
+		// ageGroup,a.activity_name,ds.session_name as sessionName,"
+		// + "ifnull(r.MON,0) as MON,ifnull(r.TUE,0) as TUE,ifnull(r.WEN,0)as
+		// WEN,ifnull(r.THU,0) as THU,ifnull(r.FRI,0) as FRI,"
+		// +
+		// "(ifnull(r.MON,0)+ifnull(r.TUE,0)+ifnull(r.WEN,0)+ifnull(r.THU,0)+ifnull(r.FRI,0))
+		// as total,"
+		// +
+		// "cast(((ifnull(r.MON,0)+ifnull(r.TUE,0)+ifnull(r.WEN,0)+ifnull(r.THU,0)+ifnull(r.FRI,0))*100/500)
+		// as decimal(5,2)) as Percentage1"
+		// + " from report r join child_info ci join day_session ds join
+		// age_group ag join activity a on(r.fk_idchild=ci.idchild and
+		// r.fk_idsession=ds.idsession and ci.fk_age_group=ag.idage_group and
+		// r.fk_idactivity=a.idactivity) "
+		// + "where r.fk_idchild=? " + "group by ci.idchild,ds.session_name;";
 
-		String sql="select ci.idchild,ci.name,ci.surname,ci.dob, ag.name as ageGroup,a.activity_name,ds.session_name as sessionName,cp.name,r.care_provider_feedback "
-				  +"from report r join child_info ci join day_session ds join age_group ag join activity a join care_provider cp "
-				  +"on(r.fk_idchild=ci.idchild and r.fk_idsession=ds.idsession and ci.fk_age_group=ag.idage_group and r.fk_idactivity=a.idactivity and r.fk_idprovider=cp.idcare_provider) "
-				  +"where r.fk_idchild=? " + "group by ci.idchild,ds.session_name;";
+		String sql = "select ci.idchild,ci.name,ci.surname,ci.dob, ag.name as ageGroup,a.activity_name,ds.session_name as sessionName,cp.name,r.care_provider_feedback "
+				+ "from report r join child_info ci join day_session ds join age_group ag join activity a join care_provider cp "
+				+ "on(r.fk_idchild=ci.idchild and r.fk_idsession=ds.idsession and ci.fk_age_group=ag.idage_group and r.fk_idactivity=a.idactivity and r.fk_idprovider=cp.idcare_provider) "
+				+ "where r.fk_idchild=? " + "group by ci.idchild,ds.session_name;";
 		try {
 			ResultSet resultset = dbConnector.getReport(sql, childid);
 			while (resultset.next()) {
-//				listofscore.add(new ChildReportPOJO(resultset.getInt(1), resultset.getString(2), resultset.getString(3),
-//						resultset.getString(4), resultset.getString(5), resultset.getString(6), resultset.getString(7),
-//						resultset.getInt(8), resultset.getInt(9), resultset.getInt(10), resultset.getInt(11),
-//						resultset.getInt(12), resultset.getInt(13), (float) resultset.getDouble(14)));
-				
+				// listofscore.add(new ChildReportPOJO(resultset.getInt(1),
+				// resultset.getString(2), resultset.getString(3),
+				// resultset.getString(4), resultset.getString(5),
+				// resultset.getString(6), resultset.getString(7),
+				// resultset.getInt(8), resultset.getInt(9),
+				// resultset.getInt(10), resultset.getInt(11),
+				// resultset.getInt(12), resultset.getInt(13), (float)
+				// resultset.getDouble(14)));
+
 				listofscore.add(new ChildReportPOJO(resultset.getInt(1), resultset.getString(2), resultset.getString(3),
 						resultset.getString(4), resultset.getString(5), resultset.getString(6), resultset.getString(7),
 						resultset.getString(8), resultset.getString(9)));
@@ -303,19 +332,23 @@ public class AdminServiceImpl implements AdminService {
 		Collection<ChildReportPOJO> subsetoflistofscore = new ArrayList<>();
 		System.out.println("gerenating report for Children ");
 		ResultSet childresult;
-		String sql="select ci.idchild,ci.name,ci.surname,ci.dob, ag.name as ageGroup,a.activity_name,ds.session_name as sessionName,cp.name,r.care_provider_feedback "
-				  +"from report r join child_info ci join day_session ds join age_group ag join activity a join care_provider cp "
-				  +"on(r.fk_idchild=ci.idchild and r.fk_idsession=ds.idsession and ci.fk_age_group=ag.idage_group and r.fk_idactivity=a.idactivity and r.fk_idprovider=cp.idcare_provider) "
-				  + "group by ci.idchild,ds.session_name;";
+		String sql = "select ci.idchild,ci.name,ci.surname,ci.dob, ag.name as ageGroup,a.activity_name,ds.session_name as sessionName,cp.name,r.care_provider_feedback "
+				+ "from report r join child_info ci join day_session ds join age_group ag join activity a join care_provider cp "
+				+ "on(r.fk_idchild=ci.idchild and r.fk_idsession=ds.idsession and ci.fk_age_group=ag.idage_group and r.fk_idactivity=a.idactivity and r.fk_idprovider=cp.idcare_provider) "
+				+ "group by ci.idchild,ds.session_name;";
 		try {
 			ResultSet resultset = dbConnector.query(sql);
 
 			while (resultset.next()) {
-//				listofscore.add(new ChildReportPOJO(resultset.getInt(1), resultset.getString(2), resultset.getString(3),
-//						resultset.getString(4), resultset.getString(5), resultset.getString(6), resultset.getString(7),
-//						resultset.getInt(8), resultset.getInt(9), resultset.getInt(10), resultset.getInt(11),
-//						resultset.getInt(12), resultset.getInt(13), (float) resultset.getDouble(14)));
-				
+				// listofscore.add(new ChildReportPOJO(resultset.getInt(1),
+				// resultset.getString(2), resultset.getString(3),
+				// resultset.getString(4), resultset.getString(5),
+				// resultset.getString(6), resultset.getString(7),
+				// resultset.getInt(8), resultset.getInt(9),
+				// resultset.getInt(10), resultset.getInt(11),
+				// resultset.getInt(12), resultset.getInt(13), (float)
+				// resultset.getDouble(14)));
+
 				listofscore.add(new ChildReportPOJO(resultset.getInt(1), resultset.getString(2), resultset.getString(3),
 						resultset.getString(4), resultset.getString(5), resultset.getString(6), resultset.getString(7),
 						resultset.getString(8), resultset.getString(9)));
@@ -451,6 +484,7 @@ public class AdminServiceImpl implements AdminService {
 		}
 
 	}
+
 	@Override
 	public boolean displayChild(int id) {
 		ResultSet resultSetChild = null;
@@ -472,6 +506,7 @@ public class AdminServiceImpl implements AdminService {
 		}
 		return recordExists;
 	}
+
 	@Override
 	public boolean displayParent(int id) {
 
@@ -489,6 +524,7 @@ public class AdminServiceImpl implements AdminService {
 		}
 		return recordExists;
 	}
+
 	@Override
 	public void updateParentInfo(int parentId, ParentPOJO parentPOJO) {
 		int resultUpdate = 0;
@@ -506,6 +542,7 @@ public class AdminServiceImpl implements AdminService {
 			e.printStackTrace();
 		}
 	}
+
 	public void updateContactInfo(int parentId, ContactPOJO contactPOJO) {
 		int resultUpdate = 0;
 		try {
@@ -523,6 +560,7 @@ public class AdminServiceImpl implements AdminService {
 			e.printStackTrace();
 		}
 	}
+
 	@Override
 	public boolean displayContact(int id) {
 		boolean recordExists = false;
@@ -541,6 +579,7 @@ public class AdminServiceImpl implements AdminService {
 		}
 		return recordExists;
 	}
+
 	@Override
 	public void updateCareProviderInfo(int careProviderId, CareProviderPOJO careProviderPOJO) {
 		int resultUpdate = 0;
@@ -558,6 +597,7 @@ public class AdminServiceImpl implements AdminService {
 			e.printStackTrace();
 		}
 	}
+
 	@Override
 	public boolean displayCareProvider(int id) {
 
@@ -577,6 +617,7 @@ public class AdminServiceImpl implements AdminService {
 		}
 		return recordExists;
 	}
+
 	@Override
 	public void provideFeedback(ProviderFeedbackPOJO providerFeedbackPOJO) {
 		try {
@@ -594,80 +635,76 @@ public class AdminServiceImpl implements AdminService {
 			e.printStackTrace();
 		}
 	}
-	@Override
-	public void insertMealDetails(FoodPOJO foodPOJO) {
 
-		int resultCountFood;
-		try {
-			resultCountFood = dbConnector.insert(
-					"INSERT INTO FOOD(day, breakfast, lunch,snak) VALUES('" + foodPOJO.getDay()
-							+ "','" + foodPOJO.getBreakfast()+ "','" + foodPOJO.getLunch() + "','" + foodPOJO.getSnack() + "')");
-			if ((resultCountFood > 0))
-				System.out.println("Food Record Inserted Successfully\n");
-			else
-				System.out.println("Error Inserting Record Please Try Again\n");
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-
-		
-	}
-	@Override
-	public void updateFood(FoodPOJO foodPOJO) {
-	int resultUpdate = 0;
-		
-		String column_to_set,query_aux;
-		
-		if(foodPOJO.getBreakfast()!=null){
-			column_to_set="breakfast";
-			query_aux=foodPOJO.getBreakfast();
-		}else if(foodPOJO.getLunch()!=null){
-			column_to_set="lunch";
-			query_aux=foodPOJO.getLunch();
-		}else{
-			query_aux=foodPOJO.getSnack();
-			column_to_set="snak";
-			}
-
-		String updateQuery = "UPDATE food SET " +column_to_set;
-		updateQuery = updateQuery  +" = '" + query_aux+ "' WHERE day = '" + foodPOJO.getDay()+"'";
-				
-		
-				
-		try {
-			resultUpdate = dbConnector.insert(updateQuery);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		if (resultUpdate > 0) {
-			System.out.println("Care Food Record Updated!!\n");
-		} else
-			System.out.println("Error Occured, Record Not Updated");
-
-		
-	}
-
-	@Override
-	public void deleteMealDay(FoodPOJO foodPOJO) {
-		int resultUpdate = 0;
-		String updateQuery = "DELETE FROM FOOD ";
-		updateQuery = updateQuery  + " WHERE day = '" + foodPOJO.getDay()+"'";
-		
-				
-		try {
-			resultUpdate = dbConnector.delete(updateQuery);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		if (resultUpdate > 0) {
-			System.out.println("Food Deleted correctly!!\n");
-		} else
-			System.out.println("Error Occured, Record Not Updated");
-
-		
-	}
+//	@Override
+//	public void insertMealDetails(FoodPOJO foodPOJO) {
+//
+//		int resultCountFood;
+//		try {
+//			resultCountFood = dbConnector.insert("INSERT INTO FOOD(day, breakfast, lunch,snak) VALUES('"
+//					+ foodPOJO.getDay() + "','" + foodPOJO.getBreakfast() + "','" + foodPOJO.getLunch() + "','"
+//					+ foodPOJO.getSnack() + "')");
+//			if ((resultCountFood > 0))
+//				System.out.println("Food Record Inserted Successfully\n");
+//			else
+//				System.out.println("Error Inserting Record Please Try Again\n");
+//		} catch (SQLException e) {
+//			e.printStackTrace();
+//		}
+//
+//	}
+//
+//	@Override
+//	public void updateFood(FoodPOJO foodPOJO) {
+//		int resultUpdate = 0;
+//
+//		String column_to_set, query_aux;
+//
+//		if (foodPOJO.getBreakfast() != null) {
+//			column_to_set = "breakfast";
+//			query_aux = foodPOJO.getBreakfast();
+//		} else if (foodPOJO.getLunch() != null) {
+//			column_to_set = "lunch";
+//			query_aux = foodPOJO.getLunch();
+//		} else {
+//			query_aux = foodPOJO.getSnack();
+//			column_to_set = "snak";
+//		}
+//
+//		String updateQuery = "UPDATE food SET " + column_to_set;
+//		updateQuery = updateQuery + " = '" + query_aux + "' WHERE day = '" + foodPOJO.getDay() + "'";
+//
+//		try {
+//			resultUpdate = dbConnector.insert(updateQuery);
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		if (resultUpdate > 0) {
+//			System.out.println("Care Food Record Updated!!\n");
+//		} else
+//			System.out.println("Error Occured, Record Not Updated");
+//
+//	}
+//
+//	@Override
+//	public void deleteMealDay(FoodPOJO foodPOJO) {
+//		int resultUpdate = 0;
+//		String updateQuery = "DELETE FROM FOOD ";
+//		updateQuery = updateQuery + " WHERE day = '" + foodPOJO.getDay() + "'";
+//
+//		try {
+//			resultUpdate = dbConnector.delete(updateQuery);
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		if (resultUpdate > 0) {
+//			System.out.println("Food Deleted correctly!!\n");
+//		} else
+//			System.out.println("Error Occured, Record Not Updated");
+//
+//	}
 
 	@Override
 	public void updateChildInfo(int id, ChildPOJO childPOJO) throws SQLException {
@@ -694,31 +731,68 @@ public class AdminServiceImpl implements AdminService {
 	}
 
 	@Override
-	public void GenerateScheduleReport() {
+	public void GenerateScheduleReport() throws SQLException {
+
 		Set<ChildIdAgeGroupId> chid_ageid = getAvailableChilden();
+		// above method takes all children from report table
 		Collection<SchedulePOJO> schedule = null;
 		ResultSet resultset = null;
 		/* call to prcedure where it will compose the schedule for child */
 		String sql = "{call child_care.update_plan_for_astudent(?, ?)}";
 		Iterator<ChildIdAgeGroupId> it = chid_ageid.iterator();
+		
+		
 		while (it.hasNext()) {
 			ChildIdAgeGroupId cag = it.next();
 
+			// get composed schedule
 			resultset = dbConnector.callProcedure(sql, cag.getChildid(), cag.getAgegroupid());
 			schedule = new ArrayList<>();
-			try {
-				while (resultset.next()) {
-					schedule.add(new SchedulePOJO(resultset.getString(1), resultset.getString(2)));
-				}
-			} catch (SQLException e) {
 
-				e.printStackTrace();
+			while (resultset.next()) {// create list of schedule objs.
+				schedule.add(new SchedulePOJO(resultset.getString(1), resultset.getString(2)));
 			}
 			printScheduleReport(schedule, cag.getChildid());
 		}
 	}
 
-	private void printScheduleReport(Collection<SchedulePOJO> schedule, int childid) {
+	protected List<FoodPOJO> extractfood() throws SQLException {
+		List<FoodPOJO> listOffood = new ArrayList<>();
+		ResultSet resultset = null;
+		String sqlforfood = "select * from FOOD";
+		try {
+			resultset = dbConnector.query(sqlforfood);
+		} catch (SQLException e1) {
+			System.out.println("Problem in extracting food");
+		}
+		while (resultset.next()) {
+			listOffood.add(new FoodPOJO(resultset.getInt(1),resultset.getString(2), resultset.getString(3), resultset.getString(4)));
+		}
+		return listOffood;
+	}
+
+	protected List<ActivityPOJO> getActivityDescription(int childid) throws SQLException {
+		ResultSet resultset = null;
+
+		List<ActivityPOJO> activityDescList = new ArrayList<>();
+		String sqlforactivityDesc = "select r.fk_idsession,a.activity_name, a.activity_description "
+				+ "from activity a join report r " + "on(a.idactivity=r.fk_idactivity) " + "where r.fk_idchild=?;";
+		try {
+			resultset = dbConnector.getReport(sqlforactivityDesc, childid);
+		} catch (SQLException e) {
+			System.out.println("No Activity Description found");
+		}
+		while (resultset.next()) {
+			ActivityPOJO activity = new ActivityPOJO();
+			activity.setSession(resultset.getInt(1));
+			activity.setName(resultset.getString(2));
+			activity.setDescription(resultset.getString(3));
+			activityDescList.add(activity);
+		}
+		return activityDescList;
+	}
+
+	private void printScheduleReport(Collection<SchedulePOJO> schedule, int childid) throws SQLException {
 		System.out.println("Inside Printreport");
 		ReportFiller reportfiller = new ReportFiller(schedule);
 		try {
@@ -744,7 +818,7 @@ public class AdminServiceImpl implements AdminService {
 		}
 	}
 
-	private void printPerformanceReport(Collection<ChildReportPOJO> subsetoflistofscore, int childid) {
+	private void printPerformanceReport(Collection<ChildReportPOJO> subsetoflistofscore, int childid) throws SQLException {
 
 		ReportFiller reportfiller = new ReportFiller(subsetoflistofscore);
 
@@ -797,6 +871,23 @@ public class AdminServiceImpl implements AdminService {
 
 		return chid_ageid;
 	}
-	
+
+	@Override
+	public void insertMealDetails(FoodPOJO foodPOJO) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deleteMealDay(FoodPOJO foodPOJO) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void updateFood(FoodPOJO foodPOJO) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

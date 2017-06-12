@@ -25,8 +25,8 @@ public interface AdminService {
 	void selectReport();
 	void selectSchedule();
 	void selectNewsEvents();
-	void generateReport(int childid);
-	void GenerateScheduleReport();
+	void generateReport(int childid) throws SQLException;
+	void GenerateScheduleReport() throws SQLException;
 	
 	ResultSet listAllChild() throws SQLException;
 	ResultSet displayInfo(int id,String tableName) throws SQLException;

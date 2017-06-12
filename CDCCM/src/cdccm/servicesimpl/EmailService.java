@@ -36,6 +36,7 @@ public class EmailService {
 			this.directorylocation ="C:/mypdf/performancedocs/";
 		} else if (whichmail.equals("schedule")) {
 			this.directorylocation ="C:/mypdf/scheduledocs/";
+			//make description and food on the fly
 		} else if (whichmail.equals("news")) {
 
 			this.directorylocation = null;
@@ -92,7 +93,8 @@ public class EmailService {
 
 		while (it.hasNext()) {
 			ParentNamePlate parentnameplate = it.next();
-			int childid = parentnameplate.getChildid();
+			int childid = parentnameplate.getChildid();//
+		
 			System.out.println("child id: " + childid + " is selected for sending");
 			for (int i = 0; i < fileNames.length; i++) {
 				String[] dateAndId = new String[3];

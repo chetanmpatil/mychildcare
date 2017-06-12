@@ -544,7 +544,7 @@ public class AdminController {
 			System.out.println("No Record Found !!");
 	}
 
-	private void GenerateReport() {
+	private void GenerateReport() throws SQLException {
 
 		boolean choiceFlag = true;
 		// String tableName="";
@@ -597,96 +597,96 @@ public class AdminController {
 	}
 
 	private void CreateFoodProgram() {
-		FoodPOJO FoodPOJO = new FoodPOJO();
-
-		System.out.println("++++++++++ Welcome To Meal Program Registration Portal ++++++++++\n");
-		System.out.println("++++++++++ Please Enter Details for the Meals for all the week  ++++++++++\n ");
-
-		System.out.println("Please Select An Operation To Perform");
-		System.out.println("1. Create Meal Program \n2. Update Meal Program \n3. Delete Meal Pogram for day ");
-		int operation = 0;
-		operation = Integer.parseInt(inputScanner.nextLine());
-		switch (operation) {
-		case 1:
-
-			boolean moreEntry = true;
-			do {
-				System.out.println(
-						"Enter The day to complete the Meal program: Select Please   Mon / Tue / Wed / Thu / Fri ");
-				FoodPOJO.setDay(inputScanner.nextLine());
-				System.out.println("Enter The Breakfast for " + FoodPOJO.getDay());
-
-				FoodPOJO.setBreakfast(inputScanner.nextLine());
-				System.out.println("Enter The Lunch for " + FoodPOJO.getDay());
-				FoodPOJO.setLunch(inputScanner.nextLine());
-				System.out.println("Enter The Snack for " + FoodPOJO.getDay());
-				FoodPOJO.setSnack(inputScanner.nextLine());
-				adminService.insertMealDetails(FoodPOJO);
-				System.out.println("Do You Want To Create More Meals? Press Yes");
-				String choice1 = inputScanner.nextLine().toUpperCase();
-				if (choice1.equals("YES")) {
-
-				} else
-					moreEntry = false;
-
-			} while (moreEntry);
-			break;
-
-		// update
-		case 2:
-			int option;
-			moreEntry = true;
-			do {
-
-				System.out.println("\nEnter Day To Update Meal ");
-				FoodPOJO.setDay(inputScanner.nextLine());
-				System.out.println("Enter which Meal will be updated : 1.  Breakfast / 2. Lunch / 3. Snak");
-				option = Integer.parseInt(inputScanner.nextLine());
-
-				if (option == 1) {
-					System.out.println("Enter the new BreakFast for " + FoodPOJO.getDay());
-					FoodPOJO.setBreakfast(inputScanner.nextLine());
-				} else if (option == 2) {
-					System.out.println("Enter the new Lunch for " + FoodPOJO.getDay());
-					FoodPOJO.setLunch(inputScanner.nextLine());
-				} else {
-					System.out.println("Enter the new Meal for " + FoodPOJO.getDay());
-					FoodPOJO.setSnack(inputScanner.nextLine());
-				}
-
-				adminService.updateFood(FoodPOJO);
-
-				System.out.println("Do You Want To Update More Meals? Press Yes");
-				String choice1 = inputScanner.nextLine().toUpperCase();
-				if (choice1.equals("YES")) {
-
-				} else
-					moreEntry = false;
-			} while (moreEntry);
-
-			break;
-
-		case 3:
-			moreEntry = true;
-			do {
-				System.out.println(
-						"Enter The day to delete from the Meal program: Select Please   Mon / Tue / Wed / Thu / Fri ");
-				FoodPOJO.setDay(inputScanner.nextLine());
-				adminService.deleteMealDay(FoodPOJO);
-
-				System.out.println("Do You Want To Delete More Meals? Press Yes");
-				String choice1 = inputScanner.nextLine().toUpperCase();
-				if (choice1.equals("YES")) {
-
-				} else
-					moreEntry = false;
-			} while (moreEntry);
-
-		default:
-			System.out.println("OOPS, You Have Entered Wrong Choice!!\n Please Try Again!!");
-			break;
-		}
-
-	}
+//		FoodPOJO FoodPOJO = new FoodPOJO();
+//
+//		System.out.println("++++++++++ Welcome To Meal Program Registration Portal ++++++++++\n");
+//		System.out.println("++++++++++ Please Enter Details for the Meals for all the week  ++++++++++\n ");
+//
+//		System.out.println("Please Select An Operation To Perform");
+//		System.out.println("1. Create Meal Program \n2. Update Meal Program \n3. Delete Meal Pogram for day ");
+//		int operation = 0;
+//		operation = Integer.parseInt(inputScanner.nextLine());
+//		switch (operation) {
+//		case 1:
+//
+//			boolean moreEntry = true;
+//			do {
+//				System.out.println(
+//						"Enter The day to complete the Meal program: Select Please   Mon / Tue / Wed / Thu / Fri ");
+//				FoodPOJO.setDay(inputScanner.nextLine());
+//				System.out.println("Enter The Breakfast for " + FoodPOJO.getDay());
+//
+//				FoodPOJO.setBreakfast(inputScanner.nextLine());
+//				System.out.println("Enter The Lunch for " + FoodPOJO.getDay());
+//				FoodPOJO.setLunch(inputScanner.nextLine());
+//				System.out.println("Enter The Snack for " + FoodPOJO.getDay());
+//				FoodPOJO.setSnack(inputScanner.nextLine());
+//				adminService.insertMealDetails(FoodPOJO);
+//				System.out.println("Do You Want To Create More Meals? Press Yes");
+//				String choice1 = inputScanner.nextLine().toUpperCase();
+//				if (choice1.equals("YES")) {
+//
+//				} else
+//					moreEntry = false;
+//
+//			} while (moreEntry);
+//			break;
+//
+//		// update
+//		case 2:
+//			int option;
+//			moreEntry = true;
+//			do {
+//
+//				System.out.println("\nEnter Day To Update Meal ");
+//				FoodPOJO.setDay(inputScanner.nextLine());
+//				System.out.println("Enter which Meal will be updated : 1.  Breakfast / 2. Lunch / 3. Snak");
+//				option = Integer.parseInt(inputScanner.nextLine());
+//
+//				if (option == 1) {
+//					System.out.println("Enter the new BreakFast for " + FoodPOJO.getDay());
+//					FoodPOJO.setBreakfast(inputScanner.nextLine());
+//				} else if (option == 2) {
+//					System.out.println("Enter the new Lunch for " + FoodPOJO.getDay());
+//					FoodPOJO.setLunch(inputScanner.nextLine());
+//				} else {
+//					System.out.println("Enter the new Meal for " + FoodPOJO.getDay());
+//					FoodPOJO.setSnack(inputScanner.nextLine());
+//				}
+//
+//				adminService.updateFood(FoodPOJO);
+//
+//				System.out.println("Do You Want To Update More Meals? Press Yes");
+//				String choice1 = inputScanner.nextLine().toUpperCase();
+//				if (choice1.equals("YES")) {
+//
+//				} else
+//					moreEntry = false;
+//			} while (moreEntry);
+//
+//			break;
+//
+//		case 3:
+//			moreEntry = true;
+//			do {
+//				System.out.println(
+//						"Enter The day to delete from the Meal program: Select Please   Mon / Tue / Wed / Thu / Fri ");
+//				FoodPOJO.setDay(inputScanner.nextLine());
+//				adminService.deleteMealDay(FoodPOJO);
+//
+//				System.out.println("Do You Want To Delete More Meals? Press Yes");
+//				String choice1 = inputScanner.nextLine().toUpperCase();
+//				if (choice1.equals("YES")) {
+//
+//				} else
+//					moreEntry = false;
+//			} while (moreEntry);
+//
+//		default:
+//			System.out.println("OOPS, You Have Entered Wrong Choice!!\n Please Try Again!!");
+//			break;
+//		}
+//
+   }
 
 }
