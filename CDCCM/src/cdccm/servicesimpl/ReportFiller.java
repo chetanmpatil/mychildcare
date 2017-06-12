@@ -163,7 +163,7 @@ public class ReportFiller {
 			int childid) {
 		DynamicReport foodreport =null;
 		FastReportBuilder rb = new FastReportBuilder();
-		AbstractColumn day = createColumn("day", Integer.class, "Day of the Week",50, headerStyle, detailTextStyle);
+		AbstractColumn day = createColumn("day", String.class, "Day of the Week",50, headerStyle, detailTextStyle);
 		AbstractColumn breakfast = createColumn("breakfast", String.class, "BREAKFAST",50, headerStyle, detailTextStyle);// creates
 	    AbstractColumn lunch = createColumn("lunch", String.class, "LUNCH", 50, headerStyle, detailTextStyle);
 		AbstractColumn snacks = createColumn("snack", String.class, "SNACKS", 50, headerStyle, detailTextStyle);

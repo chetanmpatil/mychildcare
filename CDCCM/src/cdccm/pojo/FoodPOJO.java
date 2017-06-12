@@ -1,7 +1,7 @@
 package cdccm.pojo;
 
 public class FoodPOJO {
-    private int day;
+    private String day;
 	private String lunch;
 	private String breakfast;
 	private String snack;
@@ -13,17 +13,17 @@ public class FoodPOJO {
 		this.breakfast=breakfast;
 		this.snack=snack;
 	}
-	public FoodPOJO(int day, String lunch, String breakfast, String snack) {
+	public FoodPOJO(String day, String lunch, String breakfast, String snack) {
 		super();
 		this.day = day;
 		this.lunch = lunch;
 		this.breakfast = breakfast;
 		this.snack = snack;
 	}
-	public int getDay() {
+	public String getDay() {
 		return day;
 	}
-	public void setDay(int day) {
+	public void setDay(String day) {
 		this.day = day;
 	}
 	public FoodPOJO() {

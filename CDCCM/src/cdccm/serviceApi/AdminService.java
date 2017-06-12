@@ -3,6 +3,7 @@ package cdccm.serviceApi;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
+import java.util.List;
 
 import cdccm.pojo.AssignActivityPOJO;
 import cdccm.pojo.CareProviderPOJO;
@@ -41,7 +42,7 @@ public interface AdminService {
 	boolean displayCareProvider(int id);
 	void updateCareProviderInfo(int careProviderId, CareProviderPOJO careProviderPOJO);
 	void provideFeedback(ProviderFeedbackPOJO providerFeedbackPOJO);
-	void insertMealDetails(FoodPOJO foodPOJO);
+	void insertMealDetails(List<FoodPOJO> foodlist);
 	void deleteMealDay(FoodPOJO foodPOJO);
 	void updateFood(FoodPOJO foodPOJO);
 	boolean insertChildDetails(ParentPOJO parentpojo) throws SQLException, ParseException;

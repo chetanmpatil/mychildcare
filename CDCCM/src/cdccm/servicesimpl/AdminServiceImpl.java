@@ -636,75 +636,77 @@ public class AdminServiceImpl implements AdminService {
 		}
 	}
 
-//	@Override
-//	public void insertMealDetails(FoodPOJO foodPOJO) {
-//
-//		int resultCountFood;
-//		try {
-//			resultCountFood = dbConnector.insert("INSERT INTO FOOD(day, breakfast, lunch,snak) VALUES('"
-//					+ foodPOJO.getDay() + "','" + foodPOJO.getBreakfast() + "','" + foodPOJO.getLunch() + "','"
-//					+ foodPOJO.getSnack() + "')");
-//			if ((resultCountFood > 0))
-//				System.out.println("Food Record Inserted Successfully\n");
-//			else
-//				System.out.println("Error Inserting Record Please Try Again\n");
-//		} catch (SQLException e) {
-//			e.printStackTrace();
-//		}
-//
-//	}
-//
-//	@Override
-//	public void updateFood(FoodPOJO foodPOJO) {
-//		int resultUpdate = 0;
-//
-//		String column_to_set, query_aux;
-//
-//		if (foodPOJO.getBreakfast() != null) {
-//			column_to_set = "breakfast";
-//			query_aux = foodPOJO.getBreakfast();
-//		} else if (foodPOJO.getLunch() != null) {
-//			column_to_set = "lunch";
-//			query_aux = foodPOJO.getLunch();
-//		} else {
-//			query_aux = foodPOJO.getSnack();
-//			column_to_set = "snak";
-//		}
-//
-//		String updateQuery = "UPDATE food SET " + column_to_set;
-//		updateQuery = updateQuery + " = '" + query_aux + "' WHERE day = '" + foodPOJO.getDay() + "'";
-//
-//		try {
-//			resultUpdate = dbConnector.insert(updateQuery);
-//		} catch (SQLException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		if (resultUpdate > 0) {
-//			System.out.println("Care Food Record Updated!!\n");
-//		} else
-//			System.out.println("Error Occured, Record Not Updated");
-//
-//	}
-//
-//	@Override
-//	public void deleteMealDay(FoodPOJO foodPOJO) {
-//		int resultUpdate = 0;
-//		String updateQuery = "DELETE FROM FOOD ";
-//		updateQuery = updateQuery + " WHERE day = '" + foodPOJO.getDay() + "'";
-//
-//		try {
-//			resultUpdate = dbConnector.delete(updateQuery);
-//		} catch (SQLException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		if (resultUpdate > 0) {
-//			System.out.println("Food Deleted correctly!!\n");
-//		} else
-//			System.out.println("Error Occured, Record Not Updated");
-//
-//	}
+@Override
+	public void insertMealDetails(List<FoodPOJO> foodlist) {
+     int resultCountFood;
+	Iterator it=foodlist.iterator();
+	while(it.hasNext()){
+		FoodPOJO foodobj=(FoodPOJO) it.next();
+		try {
+		resultCountFood = dbConnector.insert("INSERT INTO FOOD(day, breakfast, lunch,snacks) VALUES('"
+				+ foodobj.getDay() + "','" + foodobj.getBreakfast() + "','" + foodobj.getLunch() + "','"
+					+ foodobj.getSnack() + "')");
+			if ((resultCountFood > 0))
+				System.out.println("Food Record Inserted Successfully\n");
+		else
+			System.out.println("Error Inserting Record Please Try Again\n");
+	} catch (SQLException e) {
+			e.printStackTrace();
+	}
+	}
+}
+
+	@Override
+	public void updateFood(FoodPOJO foodPOJO) {
+		int resultUpdate = 0;
+
+		String column_to_set, query_aux;
+
+		if (foodPOJO.getBreakfast() != null) {
+			column_to_set = "breakfast";
+			query_aux = foodPOJO.getBreakfast();
+		} else if (foodPOJO.getLunch() != null) {
+			column_to_set = "lunch";
+			query_aux = foodPOJO.getLunch();
+		} else {
+			query_aux = foodPOJO.getSnack();
+			column_to_set = "snak";
+		}
+
+	String updateQuery = "UPDATE food SET " + column_to_set;
+		updateQuery = updateQuery + " = '" + query_aux + "' WHERE day = '" + foodPOJO.getDay() + "'";
+
+		try {
+		resultUpdate = dbConnector.insert(updateQuery);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+	}
+		if (resultUpdate > 0) {
+			System.out.println("Care Food Record Updated!!\n");
+		} else
+			System.out.println("Error Occured, Record Not Updated");
+
+	}
+
+	@Override
+	public void deleteMealDay(FoodPOJO foodPOJO) {
+		int resultUpdate = 0;
+		String updateQuery = "DELETE FROM FOOD ";
+		updateQuery = updateQuery + " WHERE day = '" + foodPOJO.getDay() + "'";
+
+		try {
+			resultUpdate = dbConnector.delete(updateQuery);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (resultUpdate > 0) {
+			System.out.println("Food Deleted correctly!!\n");
+		} else
+			System.out.println("Error Occured, Record Not Updated");
+
+	}
 
 	@Override
 	public void updateChildInfo(int id, ChildPOJO childPOJO) throws SQLException {
@@ -766,7 +768,7 @@ public class AdminServiceImpl implements AdminService {
 			System.out.println("Problem in extracting food");
 		}
 		while (resultset.next()) {
-			listOffood.add(new FoodPOJO(resultset.getInt(1),resultset.getString(2), resultset.getString(3), resultset.getString(4)));
+			listOffood.add(new FoodPOJO(resultset.getString(1),resultset.getString(2), resultset.getString(3), resultset.getString(4)));
 		}
 		return listOffood;
 	}
@@ -872,22 +874,6 @@ public class AdminServiceImpl implements AdminService {
 		return chid_ageid;
 	}
 
-	@Override
-	public void insertMealDetails(FoodPOJO foodPOJO) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void deleteMealDay(FoodPOJO foodPOJO) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void updateFood(FoodPOJO foodPOJO) {
-		// TODO Auto-generated method stub
-		
-	}
+	
 
 }
