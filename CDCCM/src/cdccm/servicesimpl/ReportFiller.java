@@ -146,12 +146,7 @@ public class ReportFiller {
 		rb.setTitle("Activity Related Information:(" + date + ")");
 		rb.setTitleStyle(titleStyle.build()).setDefaultStyles(headerStyle, headerStyle, headerStyle, detailTextStyle);;
 
-//		report.setSubtitle("Roll No: " + childid + ". Name: " + childnameplate.getChild_first_name() + ". Surname: "
-//				+ childnameplate.getChild_last_name() + ". DOB: " + childnameplate.getDate_of_birth() + ". Group: "
-//				+ childnameplate.getAge_group())
-//				.setDefaultStyles(headerStyle, headerStyle, headerStyle, detailTextStyle);
-//		report.setSubtitleHeight(40);
-//		report.setSubtitleStyle(subTitleStyle1.build());
+
 		rb.setUseFullPageWidth(true);
 		System.out.println("getActivityDescReport " + childid);
 		foodreport=rb.build();
@@ -184,18 +179,13 @@ public class ReportFiller {
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		String date = dateFormat.format(new Date());
+		
 		rb.setTitle("CHILD FOOD PLAN OF THE WEEK,  Date:(" + date + ")");
 		rb.setTitleStyle(titleStyle.build());
 		rb.setTitleStyle(titleStyle.build()).setDefaultStyles(headerStyle, headerStyle, headerStyle, detailTextStyle);
-
-//		report.setSubtitle("Roll No: " + childid + ". Name: " + childnameplate.getChild_first_name() + ". Surname: "
-//				+ childnameplate.getChild_last_name() + ". DOB: " + childnameplate.getDate_of_birth() + ". Group: "
-//				+ childnameplate.getAge_group())
-//				.setDefaultStyles(headerStyle, headerStyle, headerStyle, detailTextStyle);
-//		report.setSubtitleHeight(40);
-//		report.setSubtitleStyle(subTitleStyle1.build());
-		rb.setUseFullPageWidth(true);
-		System.out.println("activitysubreport" + childid);
+        rb.setUseFullPageWidth(true);
+	
+		
 		foodreport=rb.build();;
 		return foodreport;
 	}
@@ -237,6 +227,7 @@ public class ReportFiller {
 		report.setSubtitleStyle(subTitleStyle1.build());
 		report.setUseFullPageWidth(true);
 		System.out.println("insede printReport 2 " + childid);
+		
 		return report.build();
 
 	}

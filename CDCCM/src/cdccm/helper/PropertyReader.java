@@ -6,11 +6,11 @@ import java.util.Properties;
 
 public class PropertyReader {
     protected Properties prop=null;
-    Properties properties = new Properties();
+   
     Thread currentThread = Thread.currentThread();
     ClassLoader contextClassLoader = currentThread.getContextClassLoader();
-    //protected InputStream input=PropertyReader.class.getClassLoader().getResourceAsStream("/CDCCM/src/data/config.properties");
-    protected InputStream input=contextClassLoader.getResourceAsStream("../data/config.properties");
+   protected InputStream input=PropertyReader.class.getClassLoader().getResourceAsStream("config.properties");
+    //protected InputStream input=contextClassLoader.getResourceAsStream("config.properties");
 
     public PropertyReader() {
     	prop=new Properties();

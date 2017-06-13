@@ -1,6 +1,5 @@
 package cdccm.servicesimpl;
 
-
 import java.util.Properties;
 
 import javax.activation.DataHandler;
@@ -25,36 +24,31 @@ public class MailSender {
 	private String body;
 	private String to;
 	private String filepath;
+	private PropertyReader emailproperties = null;
 
-	public MailSender(String subject,String body,String to,String filepath)
-	{
-		this.subject=subject;
-		this.body=body;
-		this.to=to;
-		this.filepath=filepath;
-
+	public MailSender(String subject, String body, String to, String filepath) {
+		this.subject = subject;
+		this.body = body;
+		this.to = to;
+		this.filepath = filepath;
+		this.emailproperties = new PropertyReader();
 	}
+
 	@SuppressWarnings({ "restriction", "static-access" })
-    public void sendMail() {
-        
-		final String from = "chetan.patil.sender@gmail.com";
-		final String user = "chetan.patil.sender@gmail.com";
-        final String host = "smtp.gmail.com";
-		final String pass = "chetan.patil";
-		final int port=587;
-		// Get system properties
-//		final String from =this.emailproperties.getFrom();
-//		final String user =this.emailproperties.getUser();
-//        final String host = this.emailproperties.getPassword();
-//	    final String pass = this.emailproperties.getPassword();
-//	    final int port= Integer.parseInt(this.emailproperties.getPort());
+	public void sendMail() {
+
+		final String from = this.emailproperties.getFrom();
+		final String user = this.emailproperties.getUser();
+		final String host = this.emailproperties.getHost();
+		final String pass = this.emailproperties.getPassword();
+		final int port = Integer.parseInt(this.emailproperties.getPort());
 		// Get system properties
 		Properties properties = System.getProperties();
-    
+
 		// Setup mail server
 		properties.setProperty("mail.smtp.host", host);
 		properties.put("mail.smtp.starttls.enable", "true");
-		properties.put("mail.smtp.port",port);
+		properties.put("mail.smtp.port", port);
 		properties.put("mail.starttls.required", "true");
 		properties.put("mail.smtp.auth", "true");
 
@@ -63,7 +57,7 @@ public class MailSender {
 		// Get the default Session object.and provide authetication information
 		Session session = Session.getDefaultInstance(properties, new javax.mail.Authenticator() {
 			protected PasswordAuthentication getPasswordAuthentication() {
-				return new PasswordAuthentication(user,pass);
+				return new PasswordAuthentication(user, pass);
 			}
 		});
 		session.setDebug(false);
@@ -87,27 +81,25 @@ public class MailSender {
 			multipart.addBodyPart(messageBodyPart);
 
 			// Part two is attachment
-			
-		    if(filepath!=null){
-		    BodyPart attachmentpart = new MimeBodyPart();
-		   // messageBodyPart = new MimeBodyPart();
-			DataSource source = new FileDataSource(this.filepath);
-			attachmentpart.setDataHandler(new DataHandler(source));
-			attachmentpart.setFileName(this.filepath);
-			multipart.addBodyPart(attachmentpart);
-		    }//multipart.addBodyPart(messageBodyPart);
-		    
+			if (filepath != null) {
+				BodyPart attachmentpart = new MimeBodyPart();
+				DataSource source = new FileDataSource(this.filepath);
+				attachmentpart.setDataHandler(new DataHandler(source));
+				attachmentpart.setFileName(this.filepath);
+				multipart.addBodyPart(attachmentpart);
+			} // multipart.addBodyPart(messageBodyPart);
+
 			// Send the complete message parts including,subject,body,attachment
 			message.setContent(multipart);
 
 			// Send message
 			Transport transport = session.getTransport("smtp");
-			transport.connect(host,user,pass);
+			transport.connect(host, user, pass);
 			transport.send(message, message.getAllRecipients());
 			transport.close();
-			System.out.println("Sent message successfully...to: "+ this.to);
+			System.out.println("Sent message successfully...to: " + this.to);
 		} catch (MessagingException mex) {
 			mex.printStackTrace();
 		}
-}
+	}
 }

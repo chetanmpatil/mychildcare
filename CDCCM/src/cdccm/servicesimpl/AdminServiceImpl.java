@@ -281,21 +281,6 @@ public class AdminServiceImpl implements AdminService {
 		Collection<ChildReportPOJO> listofscore = new ArrayList<>();
 		System.out.println("gerenating report for Child " + childid);
 		ResultSet childresult;
-		// String sql = "select ci.idchild,ci.name,ci.surname,ci.dob, ag.name as
-		// ageGroup,a.activity_name,ds.session_name as sessionName,"
-		// + "ifnull(r.MON,0) as MON,ifnull(r.TUE,0) as TUE,ifnull(r.WEN,0)as
-		// WEN,ifnull(r.THU,0) as THU,ifnull(r.FRI,0) as FRI,"
-		// +
-		// "(ifnull(r.MON,0)+ifnull(r.TUE,0)+ifnull(r.WEN,0)+ifnull(r.THU,0)+ifnull(r.FRI,0))
-		// as total,"
-		// +
-		// "cast(((ifnull(r.MON,0)+ifnull(r.TUE,0)+ifnull(r.WEN,0)+ifnull(r.THU,0)+ifnull(r.FRI,0))*100/500)
-		// as decimal(5,2)) as Percentage1"
-		// + " from report r join child_info ci join day_session ds join
-		// age_group ag join activity a on(r.fk_idchild=ci.idchild and
-		// r.fk_idsession=ds.idsession and ci.fk_age_group=ag.idage_group and
-		// r.fk_idactivity=a.idactivity) "
-		// + "where r.fk_idchild=? " + "group by ci.idchild,ds.session_name;";
 
 		String sql = "select ci.idchild,ci.name,ci.surname,ci.dob, ag.name as ageGroup,a.activity_name,ds.session_name as sessionName,cp.name,r.care_provider_feedback "
 				+ "from report r join child_info ci join day_session ds join age_group ag join activity a join care_provider cp "
@@ -304,15 +289,6 @@ public class AdminServiceImpl implements AdminService {
 		try {
 			ResultSet resultset = dbConnector.getReport(sql, childid);
 			while (resultset.next()) {
-				// listofscore.add(new ChildReportPOJO(resultset.getInt(1),
-				// resultset.getString(2), resultset.getString(3),
-				// resultset.getString(4), resultset.getString(5),
-				// resultset.getString(6), resultset.getString(7),
-				// resultset.getInt(8), resultset.getInt(9),
-				// resultset.getInt(10), resultset.getInt(11),
-				// resultset.getInt(12), resultset.getInt(13), (float)
-				// resultset.getDouble(14)));
-
 				listofscore.add(new ChildReportPOJO(resultset.getInt(1), resultset.getString(2), resultset.getString(3),
 						resultset.getString(4), resultset.getString(5), resultset.getString(6), resultset.getString(7),
 						resultset.getString(8), resultset.getString(9)));
@@ -340,15 +316,7 @@ public class AdminServiceImpl implements AdminService {
 			ResultSet resultset = dbConnector.query(sql);
 
 			while (resultset.next()) {
-				// listofscore.add(new ChildReportPOJO(resultset.getInt(1),
-				// resultset.getString(2), resultset.getString(3),
-				// resultset.getString(4), resultset.getString(5),
-				// resultset.getString(6), resultset.getString(7),
-				// resultset.getInt(8), resultset.getInt(9),
-				// resultset.getInt(10), resultset.getInt(11),
-				// resultset.getInt(12), resultset.getInt(13), (float)
-				// resultset.getDouble(14)));
-
+				
 				listofscore.add(new ChildReportPOJO(resultset.getInt(1), resultset.getString(2), resultset.getString(3),
 						resultset.getString(4), resultset.getString(5), resultset.getString(6), resultset.getString(7),
 						resultset.getString(8), resultset.getString(9)));
@@ -636,25 +604,25 @@ public class AdminServiceImpl implements AdminService {
 		}
 	}
 
-@Override
+	@Override
 	public void insertMealDetails(List<FoodPOJO> foodlist) {
-     int resultCountFood;
-	Iterator it=foodlist.iterator();
-	while(it.hasNext()){
-		FoodPOJO foodobj=(FoodPOJO) it.next();
-		try {
-		resultCountFood = dbConnector.insert("INSERT INTO FOOD(day, breakfast, lunch,snacks) VALUES('"
-				+ foodobj.getDay() + "','" + foodobj.getBreakfast() + "','" + foodobj.getLunch() + "','"
-					+ foodobj.getSnack() + "')");
-			if ((resultCountFood > 0))
-				System.out.println("Food Record Inserted Successfully\n");
-		else
-			System.out.println("Error Inserting Record Please Try Again\n");
-	} catch (SQLException e) {
-			e.printStackTrace();
+		int resultCountFood;
+		Iterator it = foodlist.iterator();
+		while (it.hasNext()) {
+			FoodPOJO foodobj = (FoodPOJO) it.next();
+			try {
+				resultCountFood = dbConnector.insert("INSERT INTO FOOD(day, breakfast, lunch,snacks) VALUES('"
+						+ foodobj.getDay() + "','" + foodobj.getBreakfast() + "','" + foodobj.getLunch() + "','"
+						+ foodobj.getSnack() + "')");
+				if ((resultCountFood > 0))
+					System.out.println("Food Record Inserted Successfully\n");
+				else
+					System.out.println("Error Inserting Record Please Try Again\n");
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 	}
-	}
-}
 
 	@Override
 	public void updateFood(FoodPOJO foodPOJO) {
@@ -673,15 +641,15 @@ public class AdminServiceImpl implements AdminService {
 			column_to_set = "snak";
 		}
 
-	String updateQuery = "UPDATE food SET " + column_to_set;
+		String updateQuery = "UPDATE food SET " + column_to_set;
 		updateQuery = updateQuery + " = '" + query_aux + "' WHERE day = '" + foodPOJO.getDay() + "'";
 
 		try {
-		resultUpdate = dbConnector.insert(updateQuery);
+			resultUpdate = dbConnector.insert(updateQuery);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-	}
+		}
 		if (resultUpdate > 0) {
 			System.out.println("Care Food Record Updated!!\n");
 		} else
@@ -742,8 +710,7 @@ public class AdminServiceImpl implements AdminService {
 		/* call to prcedure where it will compose the schedule for child */
 		String sql = "{call child_care.update_plan_for_astudent(?, ?)}";
 		Iterator<ChildIdAgeGroupId> it = chid_ageid.iterator();
-		
-		
+
 		while (it.hasNext()) {
 			ChildIdAgeGroupId cag = it.next();
 
@@ -768,7 +735,8 @@ public class AdminServiceImpl implements AdminService {
 			System.out.println("Problem in extracting food");
 		}
 		while (resultset.next()) {
-			listOffood.add(new FoodPOJO(resultset.getString(1),resultset.getString(2), resultset.getString(3), resultset.getString(4)));
+			listOffood.add(new FoodPOJO(resultset.getString(1), resultset.getString(2), resultset.getString(3),
+					resultset.getString(4)));
 		}
 		return listOffood;
 	}
@@ -820,7 +788,8 @@ public class AdminServiceImpl implements AdminService {
 		}
 	}
 
-	private void printPerformanceReport(Collection<ChildReportPOJO> subsetoflistofscore, int childid) throws SQLException {
+	private void printPerformanceReport(Collection<ChildReportPOJO> subsetoflistofscore, int childid)
+			throws SQLException {
 
 		ReportFiller reportfiller = new ReportFiller(subsetoflistofscore);
 
@@ -873,7 +842,5 @@ public class AdminServiceImpl implements AdminService {
 
 		return chid_ageid;
 	}
-
-	
 
 }
