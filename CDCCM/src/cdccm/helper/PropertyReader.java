@@ -56,7 +56,7 @@ public class PropertyReader {
 	public String getDbPassword() {
 		return prop.getProperty("password");
 	}
-	public String userName() {
+	public String getUserName() {
 		return prop.getProperty("userName");
 	}
 	public String getPerformanceDirectory() {

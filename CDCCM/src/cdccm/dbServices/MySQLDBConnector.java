@@ -19,15 +19,22 @@ public class MySQLDBConnector {
 	private Statement resultStatement=null;
 	private static MySQLDBConnector dbConnectorObj=null;
 	private PreparedStatement preparedstatement=null;
-	PropertyReader directory=null;
+	PropertyReader dbProperties=null;
 	
 	private MySQLDBConnector() {
-		String url = "jdbc:mysql://localhost:3306/";
-		String dbName = "child_care";
-		String driver = "com.mysql.jdbc.Driver";
-		String userName = "root";// default user name
-		String password = "mysql";// default password
-        this.directory=new PropertyReader();
+		 this.dbProperties=new PropertyReader();
+//		String url = "jdbc:mysql://localhost:3306/";
+//		String dbName = "child_care";
+//		String driver = "com.mysql.jdbc.Driver";
+//		String userName = "root";// default user name
+//		String password = "mysql";// default password
+		this.dbProperties=new PropertyReader();
+		String url = this.dbProperties.getUrl();
+		String dbName =this.dbProperties.getDbName();
+		String driver = this.dbProperties.getDriver();
+		String userName =this.dbProperties.getUserName();// default user name
+		String password =this.dbProperties.getDbPassword();// default password
+        
 		try {
 			Class.forName(driver).newInstance();
 			this.conn = (Connection) DriverManager.getConnection(url + dbName, userName, password);
