@@ -607,12 +607,13 @@ public class AdminController {
 		System.out.println("1. Create Meal Program \n2. Update Meal Program \n3. Delete Meal Pogram for day ");
 		int operation = 0;
 		operation = Integer.parseInt(inputScanner.nextLine());
+		int  daycounter=1;
+		boolean moreEntry = true;
 		switch (operation) {
 		case 1:
-            int  daycounter=0;
-			boolean moreEntry = true;
+		
 			do {
-				daycounter++;
+				
 				foodobject= new FoodPOJO();
 				System.out.println(
 						"Enter The day to complete the Meal program: Select Please   Mon / Tue / Wed / Thu / Fri ");
@@ -624,16 +625,15 @@ public class AdminController {
 				foodobject.setLunch(inputScanner.nextLine());
 				System.out.println("Enter The Snack for " + foodobject.getDay());
 				foodobject.setSnack(inputScanner.nextLine());
-				foodlist.add(foodobject);
+				
 				foodlist.add(foodobject);
 				System.out.println("Do You Want To Create More Meals? Press Yes");
-				String choice1 = inputScanner.nextLine().toUpperCase();
+				String choice = inputScanner.nextLine().toUpperCase();
+				daycounter++;
 				
-				if (choice1.equalsIgnoreCase("YES") && daycounter<=5) {
-
-				} else{
+				if (!choice.equals("YES")|| daycounter>5){
+					moreEntry=false;
 					adminService.insertMealDetails(foodlist);
-					moreEntry = false;
 				}
 			} while (moreEntry);
 			break;
