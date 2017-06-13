@@ -43,10 +43,25 @@ public class PropertyReader {
 		return prop.getProperty("port");
 	}
 
+	public String getUrl() {
+		return prop.getProperty("url");
+	}
+
+	public String getDbName() {
+		return prop.getProperty("dbName");
+	}
+	public String getDriver() {
+		return prop.getProperty("driver");
+	}
+	public String getDbPassword() {
+		return prop.getProperty("password");
+	}
+	public String userName() {
+		return prop.getProperty("userName");
+	}
 	public String getPerformanceDirectory() {
 		return prop.getProperty("peformancedirectory");
 	}
-
 	public String getScheduleDirectory() {
 		return prop.getProperty("scheduledirectory");
 	}

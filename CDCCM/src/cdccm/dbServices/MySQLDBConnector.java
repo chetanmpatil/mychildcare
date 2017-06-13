@@ -11,6 +11,7 @@ import java.util.ArrayList;
 
 import com.lowagie.text.List;
 
+import cdccm.helper.PropertyReader;
 import cdccm.pojo.ParentNamePlate;
 
 public class MySQLDBConnector {
@@ -18,14 +19,15 @@ public class MySQLDBConnector {
 	private Statement resultStatement=null;
 	private static MySQLDBConnector dbConnectorObj=null;
 	private PreparedStatement preparedstatement=null;
-
+	PropertyReader directory=null;
+	
 	private MySQLDBConnector() {
 		String url = "jdbc:mysql://localhost:3306/";
 		String dbName = "child_care";
 		String driver = "com.mysql.jdbc.Driver";
 		String userName = "root";// default user name
 		String password = "mysql";// default password
-
+        this.directory=new PropertyReader();
 		try {
 			Class.forName(driver).newInstance();
 			this.conn = (Connection) DriverManager.getConnection(url + dbName, userName, password);
