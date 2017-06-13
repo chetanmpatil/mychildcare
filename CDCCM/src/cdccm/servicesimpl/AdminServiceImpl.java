@@ -100,33 +100,7 @@ public class AdminServiceImpl implements AdminService {
 		return true;// successful insertion
 	}
 
-	private boolean clearTheReferencedData() throws SQLException {
-		ResultSet resultset = dbConnector.query("SELECT MAX(idparent) from PARENT");
-		if (resultset.next()) {
-			int parent2delete = resultset.getInt(1);
-			int deltedrows = 0;
-			resultset = dbConnector.query("SELECT idchild from child_info where fk_idparent=" + parent2delete);
-			// delete the parent and contact only when no first child is already
-			// inserted
-			if (!resultset.next()) {// first child is not there so we can delete
-									// parent
-				System.out.println("parent to delete: " + parent2delete);
-				deltedrows = dbConnector.delete("DELETE FROM contact where fk_idparent=" + parent2delete);
-
-				System.out.println("deleted contacts: " + deltedrows);
-				if (deltedrows > 0) {
-					deltedrows = 0;
-					System.out.println("Contacts Deleted...");
-					deltedrows = dbConnector.delete("DELETE FROM parent where idparent=" + parent2delete);
-					System.out.println("deleted parent: " + deltedrows);
-					if (deltedrows > 0) {
-						return true;
-					}
-				}
-			}
-		}
-		return false;
-	}
+	
 
 	public boolean insertParentDetails(ParentPOJO parentPOJO) throws SQLException {
 		List<ContactPOJO> contactpojo = parentPOJO.getContact();
@@ -281,25 +255,31 @@ public class AdminServiceImpl implements AdminService {
 		Collection<ChildReportPOJO> listofscore = new ArrayList<>();
 		System.out.println("gerenating report for Child " + childid);
 		ResultSet childresult;
-
-		String sql = "select ci.idchild,ci.name,ci.surname,ci.dob, ag.name as ageGroup,a.activity_name,ds.session_name as sessionName,cp.name,r.care_provider_feedback "
+		int childHasActivityId = 0;
+		String sql = "select ci.idchild,ci.name,ci.surname,ci.dob, ag.name as ageGroup,a.activity_name,ds.session_name as sessionName,cp.name,r.care_provider_feedback,r.fk_idactivity "
 				+ "from report r join child_info ci join day_session ds join age_group ag join activity a join care_provider cp "
 				+ "on(r.fk_idchild=ci.idchild and r.fk_idsession=ds.idsession and ci.fk_age_group=ag.idage_group and r.fk_idactivity=a.idactivity and r.fk_idprovider=cp.idcare_provider) "
 				+ "where r.fk_idchild=? " + "group by ci.idchild,ds.session_name;";
 		try {
 			ResultSet resultset = dbConnector.getReport(sql, childid);
 			while (resultset.next()) {
+				childHasActivityId = resultset.getInt(10);
 				listofscore.add(new ChildReportPOJO(resultset.getInt(1), resultset.getString(2), resultset.getString(3),
 						resultset.getString(4), resultset.getString(5), resultset.getString(6), resultset.getString(7),
 						resultset.getString(8), resultset.getString(9)));
 			}
 
 		} catch (SQLException e) {
-
-			e.printStackTrace();
+			System.out.println("Problem in reading from Database " + e);
 		}
-		/* call for printing the */
-		printPerformanceReport(listofscore, 0);
+		/*
+		 * call for printing the report if child has been assigned an activity
+		 */
+		if (childHasActivityId != 0) {
+			printPerformanceReport(listofscore, 0);
+		} else {
+			System.out.println("Child Has No Avtivity Assigned Yet So no Record Available " + childHasActivityId);
+		}
 	}
 
 	@Override
@@ -316,7 +296,7 @@ public class AdminServiceImpl implements AdminService {
 			ResultSet resultset = dbConnector.query(sql);
 
 			while (resultset.next()) {
-				
+
 				listofscore.add(new ChildReportPOJO(resultset.getInt(1), resultset.getString(2), resultset.getString(3),
 						resultset.getString(4), resultset.getString(5), resultset.getString(6), resultset.getString(7),
 						resultset.getString(8), resultset.getString(9)));
@@ -761,7 +741,33 @@ public class AdminServiceImpl implements AdminService {
 		}
 		return activityDescList;
 	}
+	private boolean clearTheReferencedData() throws SQLException {
+		ResultSet resultset = dbConnector.query("SELECT MAX(idparent) from PARENT");
+		if (resultset.next()) {
+			int parent2delete = resultset.getInt(1);
+			int deltedrows = 0;
+			resultset = dbConnector.query("SELECT idchild from child_info where fk_idparent=" + parent2delete);
+			// delete the parent and contact only when no first child is already
+			// inserted
+			if (!resultset.next()) {// first child is not there so we can delete
+									// parent
+				System.out.println("parent to delete: " + parent2delete);
+				deltedrows = dbConnector.delete("DELETE FROM contact where fk_idparent=" + parent2delete);
 
+				System.out.println("deleted contacts: " + deltedrows);
+				if (deltedrows > 0) {
+					deltedrows = 0;
+					System.out.println("Contacts Deleted...");
+					deltedrows = dbConnector.delete("DELETE FROM parent where idparent=" + parent2delete);
+					System.out.println("deleted parent: " + deltedrows);
+					if (deltedrows > 0) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
 	private void printScheduleReport(Collection<SchedulePOJO> schedule, int childid) throws SQLException {
 		System.out.println("Inside Printreport");
 		ReportFiller reportfiller = new ReportFiller(schedule);
@@ -841,6 +847,26 @@ public class AdminServiceImpl implements AdminService {
 		}
 
 		return chid_ageid;
+	}
+
+	@Override
+	public void dumpReportToArchive() {
+		System.out.println("Dumping Report to Archive");
+		String sqldump = "insert into archive select * from report";
+		String sqlclear = "Delete from report";
+		try {
+			ResultSet resultset = dbConnector.query(sqldump);
+			if (resultset.next()) {
+				resultset = null;
+				System.out.println("Data Has been Dumpped Now Report table is clearing....");
+				resultset = dbConnector.query(sqldump);
+				if (resultset.next()) {
+					System.out.println("****Report Table cleared****");
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

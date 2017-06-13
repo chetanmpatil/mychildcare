@@ -17,9 +17,10 @@ public class EmailService {
 	private String messageHeadading;
 	private String messageBody;
 	private String directorylocation;
-	
+	PropertyReader directory=null;
 	public EmailService(String date, String messageHeadading, String messageBody) {
 		dbConnector = MySQLDBConnector.getInstance();
+		this.directory=new PropertyReader();
 		this.date = date;
 		this.messageHeadading = messageHeadading;
 		this.messageBody = messageBody;
@@ -27,15 +28,14 @@ public class EmailService {
 	}
 
 	public EmailService() {
-		
-	}
+		}
 
 	public void send(String whichmail) {
-   
+        
 		if (whichmail.equals("performance")) {
-			this.directorylocation ="C:/mypdf/performancedocs/";
+			this.directorylocation =this.directory.getPerformanceDirectory();
 		} else if (whichmail.equals("schedule")) {
-			this.directorylocation ="C:/mypdf/scheduledocs/";
+			this.directorylocation =this.directory.getScheduleDirectory();
 			//make description and food on the fly
 		} else if (whichmail.equals("news")) {
 

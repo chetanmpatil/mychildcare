@@ -46,6 +46,7 @@ public interface AdminService {
 	void deleteMealDay(FoodPOJO foodPOJO);
 	void updateFood(FoodPOJO foodPOJO);
 	boolean insertChildDetails(ParentPOJO parentpojo) throws SQLException, ParseException;
+	void dumpReportToArchive();
 	
 
 }
