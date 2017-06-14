@@ -4,9 +4,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
+import cdccm.pojo.ActivityPOJO;
 import cdccm.pojo.AssignActivityPOJO;
 import cdccm.pojo.CareProviderPOJO;
 import cdccm.pojo.ChildPOJO;
@@ -45,23 +47,7 @@ public class AdminController {
 			case 1:// done
 				try {
 					AddParent();
-					// AddChild();
-					//
-					// boolean addChildFlag = true;
-					// do {
-					// System.out.println("Want To Register Another Child
-					// (Y/N)");
-					// char input = inputScanner.next().charAt(0);
-					// if (input == 'Y' || input == 'y') {
-					// AddChild();
-					// } else {
-					// System.out.println("Register Another Child Option Not
-					// Selected Prpperly, Try Again");
-					// addChildFlag = false;
-					// }
-					// } while (addChildFlag);
-
-					System.out.println("That's All Folks!! ");
+					System.out.println("Congratulations!! ");
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
@@ -261,6 +247,7 @@ public class AdminController {
 					dateflag = false;
 				}
 			} while (dateflag);
+			
 			System.out.println("Do you have second child (Y/N)");
 			String input = inputScanner.nextLine();
 
@@ -436,8 +423,33 @@ public class AdminController {
 	}
 
 	private void AddActivitiesToAllChildren() throws SQLException {
+
+		
 		System.out.println("Welcome To Assiging All Children Acivities Based On Their Age Group");
-		adminService.assignActivitiesToChildren();
+		adminService.loadChildren();
+        System.out.println("Children Loaded Successfuly for Activity Assignment");
+        System.out.println("Now Assign The Activity To Children");
+        boolean flag=true;
+        do{
+        	System.out.println("Select the age Group For Asiginig Activity, 1.Infant/ 2.Toddler / 3.Kindergarten");
+        	int ageGroup=inputScanner.nextInt();
+        	//inputScanner.nextLine();
+        	List<ActivityPOJO> listOfActivity=adminService.getAvailableActivitieForThisAgeGroup(ageGroup);
+        	Iterator it=listOfActivity.iterator();
+        	while(it.hasNext()){
+                ActivityPOJO activitypojo =new ActivityPOJO();
+        		activitypojo=(ActivityPOJO) it.next();	
+        		System.out.println("ActivityId: "+activitypojo.getActivityId()+" ProviderId: "+activitypojo.getProviderId()+" SessionId: "+activitypojo.getSession());
+        	}
+        	System.out.println("Choose AgeGroup,ActivityID,ProviderId,SessioID(Each Value Seperated By Comma(,)");
+        	String input=inputScanner.next();
+            String inputArray[]=input.split(",");
+            /*passing ActivityId,ProviderId,SessionID*/
+          int rowsupdated=adminService.assignActivitiesToChildren(Integer.parseInt(inputArray[0]),Integer.parseInt(inputArray[1]),Integer.parseInt(inputArray[2]),Integer.parseInt(inputArray[3]));
+       
+          System.out.println("Rows Updated "+rowsupdated); 
+        }while(flag);
+      
 	}
 
 	private void UpdateRegistrationInfo() throws SQLException {

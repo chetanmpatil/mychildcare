@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.List;
 
+import cdccm.pojo.ActivityPOJO;
 import cdccm.pojo.AssignActivityPOJO;
 import cdccm.pojo.CareProviderPOJO;
 import cdccm.pojo.ChildNamePlate;
@@ -18,11 +19,16 @@ public interface AdminService {
 	//void insertChildDetails(ChildPOJO childPOJO) throws SQLException, ParseException;
 	boolean insertParentDetails(ParentPOJO parentPOJO) throws SQLException;
 	void insertCareProvider(CareProviderPOJO careProviderPOJO);
+	
 	void assignActivityToChild(int childId) throws SQLException;
-	void assignActivitiesToChildren() throws SQLException;
+	int assignActivitiesToChildren(int i, int j, int k, int l) throws SQLException;
+	void loadChildren();
+	List<ActivityPOJO> getAvailableActivitieForThisAgeGroup(int ageGroup);
+	
 	void updateChildInfo(int id, ChildPOJO childPOJO) throws SQLException;
 	void updateParentInfo(int parentID);
 	void updateCareProviderInfo(int careProviderID);
+	
 	void selectReport();
 	void selectSchedule();
 	void selectNewsEvents();
@@ -47,6 +53,7 @@ public interface AdminService {
 	void updateFood(FoodPOJO foodPOJO);
 	boolean insertChildDetails(ParentPOJO parentpojo) throws SQLException, ParseException;
 	void dumpReportToArchive();
+	
 	
 
 }

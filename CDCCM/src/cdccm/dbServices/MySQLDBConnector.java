@@ -22,18 +22,13 @@ public class MySQLDBConnector {
 	PropertyReader dbProperties=null;
 	
 	private MySQLDBConnector() {
-		 this.dbProperties=new PropertyReader();
-//		String url = "jdbc:mysql://localhost:3306/";
-//		String dbName = "child_care";
-//		String driver = "com.mysql.jdbc.Driver";
-//		String userName = "root";// default user name
-//		String password = "mysql";// default password
 		this.dbProperties=new PropertyReader();
+
 		String url = this.dbProperties.getUrl();
 		String dbName =this.dbProperties.getDbName();
 		String driver = this.dbProperties.getDriver();
-		String userName =this.dbProperties.getUserName();// default user name
-		String password =this.dbProperties.getDbPassword();// default password
+		String userName =this.dbProperties.getUserName();
+		String password =this.dbProperties.getDbPassword();
         
 		try {
 			Class.forName(driver).newInstance();
@@ -83,11 +78,9 @@ public class MySQLDBConnector {
 		return resultCount;
 	}
 
-	public ResultSet getReport(String sql, int childid) throws SQLException {
-		ResultSet resultset = null;
-
-		preparedstatement = conn.prepareStatement(sql);
-		preparedstatement.setInt(1, childid);
+	public ResultSet getReport(String sql, int id) throws SQLException {
+        preparedstatement = conn.prepareStatement(sql);
+		preparedstatement.setInt(1,id);
 
 		return preparedstatement.executeQuery();
 	}
@@ -124,5 +117,32 @@ public class MySQLDBConnector {
 		}
 
 		return resultset;
+	}
+	public void callLoadChildToReportTabProce(String sql) {
+
+		CallableStatement callablestatement;
+		try {
+			delete("Delete From report");
+			callablestatement = conn.prepareCall(sql);
+            callablestatement.executeUpdate();
+			callablestatement.close();
+		} catch (SQLException e) {
+          e.printStackTrace();
+		}
+
+	}
+
+	public int updateAllChildren(String sqlAssignactivity,int activityId,int providerId,int ageGroupId,int sessionId) throws SQLException {
+		preparedstatement = conn.prepareStatement(sqlAssignactivity);
+		
+		preparedstatement.setInt(1,activityId);
+		preparedstatement.setInt(2,providerId);
+		preparedstatement.setInt(3,ageGroupId);
+		preparedstatement.setInt(4,sessionId);
+		 
+		int rowsupdated=preparedstatement.executeUpdate();
+		return rowsupdated;
+		// TODO Auto-generated method stub
+		
 	}
 }

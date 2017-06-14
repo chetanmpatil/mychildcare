@@ -300,11 +300,11 @@ public class ReportFiller {
 
 	private DynamicReport getPerformanceReport(Style headerStyle, Style detailTextStyle, Style detailNumStyle)
 			throws ColumnBuilderException, ClassNotFoundException {
-		Iterator<ChildReportPOJO> it = reportlist.iterator();
-		while (it.hasNext()) {
-			ChildReportPOJO p = (ChildReportPOJO) it.next();
-			System.out.println(p.getChildid() + p.getName() + p.getSurname() + p.getDateOfBirth() + p.getMon());
-		}
+//		Iterator<ChildReportPOJO> it = reportlist.iterator();
+//		while (it.hasNext()) {
+//			ChildReportPOJO p = (ChildReportPOJO) it.next();
+//			System.out.println(p.getChildid() + p.getName() + p.getSurname() + p.getDateOfBirth() + p.getMon());
+//		}
 
 		DynamicReportBuilder report = new DynamicReportBuilder();
 
