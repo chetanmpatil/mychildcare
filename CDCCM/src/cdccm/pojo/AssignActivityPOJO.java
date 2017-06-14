@@ -8,7 +8,10 @@ public class AssignActivityPOJO {
 	private int careProviderID;
 	private int session;
 	private String feedback;
-
+	private String activityName;
+	private String description;
+	
+	
 	public String getFeedback() {
 		return feedback;
 	}
@@ -19,6 +22,22 @@ public class AssignActivityPOJO {
 
 	public int getChildID() {
 		return childID;
+	}
+
+	public String getActivityName() {
+		return activityName;
+	}
+
+	public void setActivityName(String activityName) {
+		this.activityName = activityName;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 	public void setChildID(int childID) {

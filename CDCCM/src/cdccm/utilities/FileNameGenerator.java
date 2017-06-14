@@ -16,12 +16,14 @@ public class FileNameGenerator {
 	private Collection<ChildReportPOJO> listofscoreobject = new ArrayList<>();
 	private Collection<SchedulePOJO> schedulelist = new ArrayList<>();
     private PropertyReader property=null;
+    
+    
 	public FileNameGenerator(Collection<? extends Object> reportobject, int childid) {
 		property=new PropertyReader();
 		this.childid = childid;
 		for (Object obj : reportobject) {
 			if (obj.getClass().getName().equals("cdccm.pojo.ChildReportPOJO")) {
-				System.out.println("Inside cdccm.pojo.ChildReportPOJO");
+				
 				listofscoreobject.addAll((Collection<? extends ChildReportPOJO>) reportobject);
 				break;
 			} else if (obj.getClass().getName().equals("cdccm.pojo.SchedulePOJO")) {

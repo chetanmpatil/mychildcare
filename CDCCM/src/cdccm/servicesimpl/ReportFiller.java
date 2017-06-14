@@ -228,7 +228,7 @@ public class ReportFiller {
 		report.setSubtitleHeight(40);
 		report.setSubtitleStyle(subTitleStyle1.build());
 		report.setUseFullPageWidth(true);
-		System.out.println("insede printReport 2 " + childid);
+		System.out.println("Printing Report for " + childid);
 		
 		return report.build();
 
