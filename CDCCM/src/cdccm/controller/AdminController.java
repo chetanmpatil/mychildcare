@@ -247,7 +247,7 @@ public class AdminController {
 					dateflag = false;
 				}
 			} while (dateflag);
-			
+
 			System.out.println("Do you have second child (Y/N)");
 			String input = inputScanner.nextLine();
 
@@ -398,7 +398,7 @@ public class AdminController {
 			}
 		} while (choiceFlag);
 	}
-
+ 
 	private void AddActivityToChild() throws SQLException {
 		boolean moreEntry = true;
 		AssignActivityPOJO assignActivityPOJO = new AssignActivityPOJO();
@@ -422,34 +422,50 @@ public class AdminController {
 		} while (moreEntry);
 	}
 
-	private void AddActivitiesToAllChildren() throws SQLException {
+	/* Takes ageGroup from user shows all available activities for that group */
+	/* user has to select from the displyed values to update report table */
+	private void AddActivitiesToAllChildren() throws NumberFormatException, SQLException  {
 
-		
 		System.out.println("Welcome To Assiging All Children Acivities Based On Their Age Group");
 		adminService.loadChildren();
-        System.out.println("Children Loaded Successfuly for Activity Assignment");
-        System.out.println("Now Assign The Activity To Children");
-        boolean flag=true;
-        do{
-        	System.out.println("Select the age Group For Asiginig Activity, 1.Infant/ 2.Toddler / 3.Kindergarten");
-        	int ageGroup=inputScanner.nextInt();
-        	//inputScanner.nextLine();
-        	List<ActivityPOJO> listOfActivity=adminService.getAvailableActivitieForThisAgeGroup(ageGroup);
-        	Iterator it=listOfActivity.iterator();
-        	while(it.hasNext()){
-                ActivityPOJO activitypojo =new ActivityPOJO();
-        		activitypojo=(ActivityPOJO) it.next();	
-        		System.out.println("ActivityId: "+activitypojo.getActivityId()+" ProviderId: "+activitypojo.getProviderId()+" SessionId: "+activitypojo.getSession());
-        	}
-        	System.out.println("Choose AgeGroup,ActivityID,ProviderId,SessioID(Each Value Seperated By Comma(,)");
-        	String input=inputScanner.next();
-            String inputArray[]=input.split(",");
-            /*passing ActivityId,ProviderId,SessionID*/
-          int rowsupdated=adminService.assignActivitiesToChildren(Integer.parseInt(inputArray[0]),Integer.parseInt(inputArray[1]),Integer.parseInt(inputArray[2]),Integer.parseInt(inputArray[3]));
-       
-          System.out.println("Rows Updated "+rowsupdated); 
-        }while(flag);
-      
+		System.out.println("Children Loaded Successfuly for Activity Assignment");
+		System.out.println("Now Assign The Activity To Children");
+		boolean flag = true;
+		do {
+			System.out.println("Select the age Group For Asiginig Activity, 1.Infant/ 2.Toddler / 3.Kindergarten");
+			int ageGroup = inputScanner.nextInt();
+			// inputScanner.nextLine();
+			List<ActivityPOJO> listOfActivity = adminService.getAvailableActivitieForThisAgeGroup(ageGroup);
+			Iterator it = listOfActivity.iterator();
+			while (it.hasNext()) {
+				ActivityPOJO activitypojo = new ActivityPOJO();
+				activitypojo = (ActivityPOJO) it.next();
+				System.out.println("ActivityId: " + activitypojo.getActivityId() + " ProviderId: "
+						+ activitypojo.getProviderId() + " SessionId: " + activitypojo.getSession());
+			}
+			boolean nextSession = true;
+			do {
+
+				System.out.println("Choose AgeGroup,ActivityID,ProviderId,SessioID(Each Value Seperated By Comma(,)");
+				String input = inputScanner.next();
+				String inputArray[] = input.split(",");
+				/* passing ActivityId,ProviderId,SessionID */
+				int rowsupdated = adminService.assignActivitiesToChildren(Integer.parseInt(inputArray[0]),
+						Integer.parseInt(inputArray[1]), Integer.parseInt(inputArray[2]),
+						Integer.parseInt(inputArray[3]));
+				System.out.println("Rows Updated " + rowsupdated);
+				System.out.println("Want To Set Activity for another Session?, Y/N");
+				String yesOrNo = inputScanner.next().toUpperCase();
+				if (yesOrNo.equals("N")) {
+					nextSession = false;
+				}
+			} while (nextSession);
+			System.out.println("Want To Set Activity For Another AgeGroup?, Y/N");
+			String yesOrNo = inputScanner.next().toUpperCase();
+			if (yesOrNo.equals("N")) {
+				flag = false;
+			}
+		} while (flag);
 	}
 
 	private void UpdateRegistrationInfo() throws SQLException {

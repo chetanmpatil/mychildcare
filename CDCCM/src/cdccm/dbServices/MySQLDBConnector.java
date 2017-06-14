@@ -9,7 +9,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
-import com.lowagie.text.List;
 
 import cdccm.helper.PropertyReader;
 import cdccm.pojo.ParentNamePlate;

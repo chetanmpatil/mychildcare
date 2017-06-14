@@ -45,27 +45,6 @@ public class AdminServiceImpl implements AdminService {
 		dbConnector = MySQLDBConnector.getInstance();
 	}
 
-	// @Override
-	// public void insertChildDetails(ChildPOJO childPOJO) throws SQLException,
-	// ParseException {
-	// int age = CdccmUtilities.getAge(childPOJO.getDob());
-	//
-	// // on the basis of age_calculartor utility we can decide age group, no
-	// // additional query to get fk_age_group
-	// int ageGroup = 2;
-	// int resultCountChild = dbConnector
-	// .insert("INSERT INTO
-	// CHILD_INFO(name,surname,dob,age,fk_age_group,fk_idparent) VALUES('"
-	// + childPOJO.getFirst_name() + "','" + childPOJO.getLast_name() + "','" +
-	// childPOJO.getDob()
-	// + "','" + age + "','" + ageGroup + "'," + "(SELECT MAX(IDPARENT) from
-	// PARENT)" + ")");
-	//
-	// if (resultCountChild > 0)
-	// System.out.println("Child Record Inserted Successfully");
-	// else
-	// System.out.println("Error Inserting Record Please Try Again");
-	// }
 	@Override
 	public boolean insertChildDetails(ParentPOJO parentpojo) throws SQLException, ParseException {
 		/* take list of children added before */
@@ -81,7 +60,7 @@ public class AdminServiceImpl implements AdminService {
 				return false;
 			}
 			int ageGroup = CdccmUtilities.getAge(child.getDob());
-			System.out.println("Age Group of Child****** "+ ageGroup);
+			System.out.println("Age Group of Child****** " + ageGroup);
 			int resultCountChild = dbConnector
 					.insert("INSERT INTO CHILD_INFO(name,surname,dob,age,fk_age_group,fk_idparent) VALUES('"
 							+ child.getFirst_name() + "','" + child.getLast_name() + "','" + child.getDob() + "','"
@@ -100,18 +79,6 @@ public class AdminServiceImpl implements AdminService {
 		}
 		return true;// successful insertion
 	}
-
-//	private int getAgeGroup(int age) throws SQLException {
-//
-//		String sqlGetAgeGroup = "select name,minage  from agegroup1  where minage<=" + age
-//				+ " order by minage desc  limit 1;";
-//		ResultSet resultset = dbConnector.query(sqlGetAgeGroup);
-//		String ageGroup = null;
-//		if (resultset.next()) {
-//			ageGroup = resultset.getString(1);
-//		}
-//		return ageGroup;
-//	}
 
 	public boolean insertParentDetails(ParentPOJO parentPOJO) throws SQLException {
 		List<ContactPOJO> contactpojo = parentPOJO.getContact();
@@ -132,29 +99,6 @@ public class AdminServiceImpl implements AdminService {
 		}
 		return false;
 	}
-
-	// public void insertParentDetails(ParentPOJO parentPOJO, ContactPOJO
-	// contactPOJO) throws SQLException {
-	//
-	// int resultCountParent = dbConnector.insert("INSERT INTO PARENT(name,
-	// surname) VALUES('"
-	// + parentPOJO.getParentFirst_name() + "','" +
-	// parentPOJO.getParentLast_name() + "')");
-	//
-	// int resultCountContact = dbConnector
-	// .insert("INSERT INTO
-	// CONTACT(street,city,pincode,phone_number,emailid,fk_idparent) VALUES('"
-	// + contactPOJO.getStreet() + "','" + contactPOJO.getCity() + "','" +
-	// contactPOJO.getPincode()
-	// + "','" + contactPOJO.getPhoneNumber() + "','" + contactPOJO.getEmail() +
-	// "',"
-	// + "(SELECT MAX(IDPARENT) from PARENT)" + ")");
-	//
-	// if ((resultCountParent > 0) && (resultCountContact > 0))
-	// System.out.println("Parent Record Inserted Successfully");
-	// else
-	// System.out.println("Error Inserting Record Please Try Again");
-	// }
 
 	@Override
 	public ResultSet listAllChild() throws SQLException {
@@ -294,191 +238,50 @@ public class AdminServiceImpl implements AdminService {
 	}
 
 	@Override
-	public void generateBulckPerformanceReport() {
-		Collection<ChildReportPOJO> listofscore = new ArrayList<>();
-		Collection<ChildReportPOJO> subsetoflistofscore = new ArrayList<>();
-		System.out.println("gerenating report for Children ");
-		ResultSet childresult;
-		String sql = "select ci.idchild,ci.name,ci.surname,ci.dob, ag.name as ageGroup,a.activity_name,ds.session_name as sessionName,cp.name,r.care_provider_feedback "
-				+ "from report r join child_info ci join day_session ds join age_group ag join activity a join care_provider cp "
-				+ "on(r.fk_idchild=ci.idchild and r.fk_idsession=ds.idsession and ci.fk_age_group=ag.idage_group and r.fk_idactivity=a.idactivity and r.fk_idprovider=cp.idcare_provider) "
-				+ "group by ci.idchild,ds.session_name;";
-		try {
-			ResultSet resultset = dbConnector.query(sql);
-
-			while (resultset.next()) {
-
-				listofscore.add(new ChildReportPOJO(resultset.getInt(1), resultset.getString(2), resultset.getString(3),
-						resultset.getString(4), resultset.getString(5), resultset.getString(6), resultset.getString(7),
-						resultset.getString(8), resultset.getString(9)));
-				System.out.println(resultset.getInt(1) + "" + resultset.getString(2));
-			}
-			Iterator<ChildReportPOJO> it = listofscore.iterator();
-			ChildReportPOJO temp = (ChildReportPOJO) it.next();
-
-			int tempp = temp.getChildid();
-			int sizeof_total_result = listofscore.size();
-			int counter = 0;
-
-			for (ChildReportPOJO p : listofscore) {
-				counter += 1;
-				if (p.getChildid() == tempp) {
-					subsetoflistofscore.add(p);
-
-					if (counter == sizeof_total_result) {
-						// check whether it is a last batch and then make call
-						// to printing process,without this checking loop will
-						// never reach to last batch
-						printPerformanceReport(subsetoflistofscore, 0);
-						subsetoflistofscore.clear();
-						subsetoflistofscore.add(p);
-					}
-				} else {
-					tempp = p.getChildid();
-					System.out.println(p.getChildid());
-					// take the batch and send for printing
-					printPerformanceReport(subsetoflistofscore, 0);
-					// clear the list for next batch and put the first element
-					// from new batch which has already taken out for comparison
-					// in "tempp"
-					subsetoflistofscore.clear();
-					subsetoflistofscore.add(p);
-				}
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Override
 	public void assignActivityToChild(int childId) throws SQLException {
 		// TODO Auto-generated method stub
 
 	}
+
 	@Override
 	public void loadChildren() {
-	dbConnector.callLoadChildToReportTabProce( "{call child_care.insert_children_to_report_table()}");
-}   
+		dbConnector.callLoadChildToReportTabProce("{call child_care.insert_children_to_report_table()}");
+	}
+
 	@Override
-	public List<ActivityPOJO> getAvailableActivitieForThisAgeGroup(int ageGroup)
-	{   ActivityPOJO activityobject=null;
-	    List<ActivityPOJO> listOfActivity=new ArrayList<>();
-		String sqlGetActivity="Select idactivity,fk_idcareprovider,fk_session from activity where fk_age_group=?";
-	    ResultSet resulrSet=null;
+	public List<ActivityPOJO> getAvailableActivitieForThisAgeGroup(int ageGroup) {
+		ActivityPOJO activityobject = null;
+		List<ActivityPOJO> listOfActivity = new ArrayList<>();
+		String sqlGetActivity = "Select idactivity,fk_idcareprovider,fk_session from activity where fk_age_group=?";
+		ResultSet resulrSet = null;
 		try {
-			resulrSet=dbConnector.getReport(sqlGetActivity, ageGroup);
-			while(resulrSet.next())
-			{
-				activityobject=new ActivityPOJO();
+			resulrSet = dbConnector.getReport(sqlGetActivity, ageGroup);
+			while (resulrSet.next()) {
+				activityobject = new ActivityPOJO();
 
 				activityobject.setActivityId(resulrSet.getInt(1));
 				activityobject.setProviderId(resulrSet.getInt(2));
 				activityobject.setSession(resulrSet.getInt(3));
-					        
+
 				listOfActivity.add(activityobject);
 			}
-        } catch (SQLException e) {
-            e.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 		return listOfActivity;
-		
+
 	}
+
 	@Override
-	public int assignActivitiesToChildren(int ageGroupId,int activityId, int providerId, int sessionId) throws SQLException {
-		String sqlAssignactivity="update report "+
-                                 "set fk_idactivity=?,fk_idprovider=? "+
-                                 "where fk_idagegroup=? and fk_idsession=?;";
-		
-		int rowsupdated=dbConnector.updateAllChildren(sqlAssignactivity,activityId,providerId,ageGroupId,sessionId);
+	public int assignActivitiesToChildren(int ageGroupId, int activityId, int providerId, int sessionId)
+			throws SQLException {
+		String sqlAssignactivity = "update report " + "set fk_idactivity=?,fk_idprovider=? "
+				+ "where fk_idagegroup=? and fk_idsession=?;";
+
+		int rowsupdated = dbConnector.updateAllChildren(sqlAssignactivity, activityId, providerId, ageGroupId,
+				sessionId);
 		return rowsupdated;
 	}
-//	@Override
-//	public void assignActivitiesToChildren() throws SQLException {
-//		int ageGroup, session;
-//		String childId = "";
-//		ResultSet chilIdList;
-//		try {
-//			for (ageGroup = 1; ageGroup <= 3; ageGroup++) {
-//				chilIdList = dbConnector
-//						.query("SELECT idchild,fk_age_group FROM CHILD_INFO where fk_age_group=" + ageGroup);
-//				while (chilIdList.next()) {
-//					if (ageGroup == 1) {
-//						for (session = 1; session < 4; session++) {
-//							childId = chilIdList.getString("IDCHILD");
-//							dbConnector.insert("update report set fk_idsession = " + session + " where fk_idagegroup = "
-//									+ ageGroup + " AND fk_idchild = " + chilIdList.getString("IDCHILD")
-//									+ " AND fk_idsession = 0" + ";");
-//							if (session == 1) {
-//								dbConnector
-//										.insert("update report set fk_idprovider = 1, fk_idactivity = 1 WHERE fk_idagegroup = "
-//												+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = "
-//												+ session + ";");
-//							} else if (session == 2) {
-//								dbConnector
-//										.insert("update report set fk_idprovider = 3, fk_idactivity = 3 WHERE fk_idagegroup = "
-//												+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = "
-//												+ session + ";");
-//							} else if (session == 3) {
-//								dbConnector
-//										.insert("update report set fk_idprovider = 5, fk_idactivity = 5 WHERE fk_idagegroup = "
-//												+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = "
-//												+ session + ";");
-//							}
-//						}
-//					}
-//					if (ageGroup == 2) {
-//						for (session = 1; session <= 3; session++) {
-//							childId = chilIdList.getString("IDCHILD");
-//							dbConnector.insert("update report set fk_idsession = " + session + " where fk_idagegroup = "
-//									+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = 0" + ";");
-//							if (session == 1) {
-//								dbConnector
-//										.insert("update report set fk_idprovider = 2, fk_idactivity = 8 WHERE fk_idagegroup = "
-//												+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = "
-//												+ session + ";");
-//							} else if (session == 2) {
-//								dbConnector
-//										.insert("update report set fk_idprovider = 4, fk_idactivity = 10 WHERE fk_idagegroup = "
-//												+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = "
-//												+ session + ";");
-//							} else if (session == 3) {
-//								dbConnector
-//										.insert("update report set fk_idprovider = 6, fk_idactivity = 12 WHERE fk_idagegroup = "
-//												+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = "
-//												+ session + ";");
-//							}
-//						}
-//					}
-//					if (ageGroup == 3) {
-//						for (session = 1; session <= 3; session++) {
-//							childId = chilIdList.getString("IDCHILD");
-//							dbConnector.insert("update report set fk_idsession = " + session + " where fk_idagegroup = "
-//									+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = 0" + ";");
-//							if (session == 1) {
-//								dbConnector
-//										.insert("update report set fk_idprovider = 2, fk_idactivity = 14 WHERE fk_idagegroup = "
-//												+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = "
-//												+ session + ";");
-//							} else if (session == 2) {
-//								dbConnector
-//										.insert("update report set fk_idprovider = 4, fk_idactivity = 16 WHERE fk_idagegroup = "
-//												+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = "
-//												+ session + ";");
-//							} else if (session == 3) {
-//								dbConnector
-//										.insert("update report set fk_idprovider = 6, fk_idactivity = 18 WHERE fk_idagegroup = "
-//												+ ageGroup + " AND fk_idchild = " + childId + " AND fk_idsession = "
-//												+ session + ";");
-//							}
-//						}
-//					}
-//				}
-//			}
-//		} catch (SQLException e) {
-//			e.printStackTrace();
-//		}
-//
-//	}
 
 	@Override
 	public boolean displayChild(int id) {
@@ -728,27 +531,20 @@ public class AdminServiceImpl implements AdminService {
 	}
 
 	@Override
-	public void GenerateScheduleReport() throws SQLException {
-
-		Set<ChildIdAgeGroupId> chid_ageid = getAvailableChilden();
-		// above method takes all children from report table
-		Collection<SchedulePOJO> schedule = null;
-		ResultSet resultset = null;
-		/* call to prcedure where it will compose the schedule for child */
-		String sql = "{call child_care.update_plan_for_astudent(?, ?)}";
-		Iterator<ChildIdAgeGroupId> it = chid_ageid.iterator();
-
-		while (it.hasNext()) {
-			ChildIdAgeGroupId cag = it.next();
-
-			// get composed schedule
-			resultset = dbConnector.callProcedure(sql, cag.getChildid(), cag.getAgegroupid());
-			schedule = new ArrayList<>();
-
-			while (resultset.next()) {// create list of schedule objs.
-				schedule.add(new SchedulePOJO(resultset.getString(1), resultset.getString(2)));
+	public void dumpReportToArchive() {
+		System.out.println("Dumping Report to Archive");
+		try {
+			ResultSet resultset = dbConnector.query("insert into archive select * from report");
+			if (resultset.next()) {
+				resultset = null;
+				System.out.println("Data Has been Dumpped Now Report table is clearing....");
+				resultset = dbConnector.query("Delete from report");
+				if (resultset.next()) {
+					System.out.println("****Report Table cleared****");
+				}
 			}
-			printScheduleReport(schedule, cag.getChildid());
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -817,6 +613,34 @@ public class AdminServiceImpl implements AdminService {
 		return false;
 	}
 
+	/******************************************
+	 * REPORT CREATION SECTION
+	 *******************************************************************************************/
+	@Override
+	public void GenerateScheduleReport() throws SQLException {
+
+		Set<ChildIdAgeGroupId> chid_ageid = getAvailableChilden();
+		// above method takes all children from report table
+		Collection<SchedulePOJO> schedule = null;
+		ResultSet resultset = null;
+		/* call to prcedure where it will compose the schedule for child */
+		String sql = "{call child_care.update_plan_for_astudent(?, ?)}";
+		Iterator<ChildIdAgeGroupId> it = chid_ageid.iterator();
+
+		while (it.hasNext()) {
+			ChildIdAgeGroupId cag = it.next();
+
+			// get composed schedule
+			resultset = dbConnector.callProcedure(sql, cag.getChildid(), cag.getAgegroupid());
+			schedule = new ArrayList<>();
+
+			while (resultset.next()) {// create list of schedule objs.
+				schedule.add(new SchedulePOJO(resultset.getString(1), resultset.getString(2)));
+			}
+			printScheduleReport(schedule, cag.getChildid());
+		}
+	}
+
 	private void printScheduleReport(Collection<SchedulePOJO> schedule, int childid) throws SQLException {
 		System.out.println("Inside Printreport");
 		ReportFiller reportfiller = new ReportFiller(schedule);
@@ -840,6 +664,62 @@ public class AdminServiceImpl implements AdminService {
 			exporter.exportReport();
 		} catch (JRException | ColumnBuilderException | ClassNotFoundException ex) {
 			ex.printStackTrace();
+		}
+	}
+
+	@Override
+	public void generateBulckPerformanceReport() {
+		Collection<ChildReportPOJO> listofscore = new ArrayList<>();
+		Collection<ChildReportPOJO> subsetoflistofscore = new ArrayList<>();
+		System.out.println("Gerenating report for All Children ");
+
+		String childReportsql = "select ci.idchild,ci.name,ci.surname,ci.dob, ag.name as ageGroup,a.activity_name,ds.session_name as sessionName,cp.name,r.care_provider_feedback "
+				+ "from report r join child_info ci join day_session ds join age_group ag join activity a join care_provider cp "
+				+ "on(r.fk_idchild=ci.idchild and r.fk_idsession=ds.idsession and ci.fk_age_group=ag.idage_group and r.fk_idactivity=a.idactivity and r.fk_idprovider=cp.idcare_provider) "
+				+ "group by ci.idchild,ds.session_name;";
+		try {
+			ResultSet resultset = dbConnector.query(childReportsql);
+
+			while (resultset.next()) {
+
+				listofscore.add(new ChildReportPOJO(resultset.getInt(1), resultset.getString(2), resultset.getString(3),
+						resultset.getString(4), resultset.getString(5), resultset.getString(6), resultset.getString(7),
+						resultset.getString(8), resultset.getString(9)));
+			}
+			Iterator<ChildReportPOJO> it = listofscore.iterator();
+			ChildReportPOJO tempobj = (ChildReportPOJO) it.next();
+
+			int childId = tempobj.getChildid();
+			int sizeof_total_result = listofscore.size();
+			int counter = 0;
+
+			for (ChildReportPOJO p : listofscore) {
+				counter += 1;
+				if (p.getChildid() == childId) {
+					subsetoflistofscore.add(p);
+
+					if (counter == sizeof_total_result) {
+						// check whether it is a last batch and then make call
+						// to printing process,without this checking loop will
+						// never reach to last batch
+						printPerformanceReport(subsetoflistofscore, 0);
+						subsetoflistofscore.clear();
+						subsetoflistofscore.add(p);
+					}
+				} else {
+					childId = p.getChildid();
+					System.out.println(p.getChildid());
+					// take the batch and send for printing
+					printPerformanceReport(subsetoflistofscore, 0);
+					// clear the list for next batch and put the first element
+					// from new batch which has already taken out for comparison
+					// in "tempp"
+					subsetoflistofscore.clear();
+					subsetoflistofscore.add(p);
+				}
+			}
+		} catch (SQLException e) {
+			System.out.println(e);
 		}
 	}
 
@@ -897,29 +777,5 @@ public class AdminServiceImpl implements AdminService {
 
 		return chid_ageid;
 	}
-
-	@Override
-	public void dumpReportToArchive() {
-		System.out.println("Dumping Report to Archive");
-		String sqldump = "insert into archive select * from report";
-		String sqlclear = "Delete from report";
-		try {
-			ResultSet resultset = dbConnector.query(sqldump);
-			if (resultset.next()) {
-				resultset = null;
-				System.out.println("Data Has been Dumpped Now Report table is clearing....");
-				resultset = dbConnector.query(sqldump);
-				if (resultset.next()) {
-					System.out.println("****Report Table cleared****");
-				}
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
-
-
-	
 
 }

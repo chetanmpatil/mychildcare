@@ -45,12 +45,13 @@ public class ReportFiller {
 		dbConnector = MySQLDBConnector.getInstance();
 		for (Object obj : listOfObjectsforReport) {
 			if (obj.getClass().getName().equals("cdccm.pojo.ChildReportPOJO")) {
-				System.out.println("Inside cdccm.pojo.ChildReportPOJO");
+				System.out.println("Report Printing Initialized");
 				this.reportlist = (Collection<ChildReportPOJO>) listOfObjectsforReport;
 				// reportlist.addAll((Collection<? extends
 				// ChildReportPOJO>)option);
 				break;
 			} else if (obj.getClass().getName().equals("cdccm.pojo.SchedulePOJO")) {
+				System.out.println("Schedule Printing Initialized");
 				schedulelist.addAll((Collection<? extends SchedulePOJO>) listOfObjectsforReport);
 				adminservice=new AdminServiceImpl();
 				break;
@@ -67,6 +68,7 @@ public class ReportFiller {
 		JasperPrint jp = null;
 		JasperPrint jp1 = null;
 		JasperPrint jp2 = null;
+		
 		Style headerStyle = createHeaderStyle();// style setup
 		Style detailTextStyle = createDetailTextStyle();
 		Style detailNumberStyle = createDetailNumberStyle();
@@ -300,11 +302,6 @@ public class ReportFiller {
 
 	private DynamicReport getPerformanceReport(Style headerStyle, Style detailTextStyle, Style detailNumStyle)
 			throws ColumnBuilderException, ClassNotFoundException {
-//		Iterator<ChildReportPOJO> it = reportlist.iterator();
-//		while (it.hasNext()) {
-//			ChildReportPOJO p = (ChildReportPOJO) it.next();
-//			System.out.println(p.getChildid() + p.getName() + p.getSurname() + p.getDateOfBirth() + p.getMon());
-//		}
 
 		DynamicReportBuilder report = new DynamicReportBuilder();
 
